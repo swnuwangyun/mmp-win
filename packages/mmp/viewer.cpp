@@ -4,8 +4,7 @@
 #include <fstream>
 #include <sstream>
 
-#include <SOIL/SOIL.h>
-//#include <FreeImage.h>
+#include <SOIL.h>
 
 #include "texthandle.h"
 #include "pmx.h"
@@ -26,6 +25,7 @@
 #endif
 
 //#define MODELDUMP true
+#define DATA_PATH ""
 
 using namespace std;
 using namespace ClosedMMDFormat;
@@ -204,7 +204,7 @@ void Viewer::fpsCount()
 	{
 		int nbf_now = nbf_count % nbf_fps;
 		char title[128];
-		sprintf(title, "%s | %2d fps", window_name, nb_frames[nbf_now]);
+		sprintf_s(title, "%s | %2d fps", window_name, nb_frames[nbf_now]);
 		glfwSetWindowTitle(title);
 		nb_frames[nbf_now] = 0;
 		last_time += seq;
@@ -629,8 +629,8 @@ void Viewer::loadTextures()
 string hackShaderFile(string filename)
 {
 	//Variables for temporary file name paths
-	char *tmpFilePathChar;
-	tmpFilePathChar=tmpnam(tmpFilePathChar); //Get path to a temporary file location
+	char tmpFilePathChar[1024];
+	tmpnam_s(tmpFilePathChar, 1024); //Get path to a temporary file location
 	
 	string tmpFilePath=tmpFilePathChar;
 	ofstream tmpShaderFile(tmpFilePath);
