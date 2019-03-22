@@ -53,9 +53,9 @@ void BulletDebugDrawer::render()
 	
 	glBindBuffer(GL_ARRAY_BUFFER,VertexArrayBuffer);	
 	
-	if (lines.size() > 1024 * 10)
+	if (lines.size() > 2048 * 10)
 		throw "Over limit";
-	float lineV[1024 * 10][8];
+	float lineV[2048 * 10][8];
 	for(int i=0; i<lines.size(); ++i)
 	{
 		lineV[i][0]=lines[i].x;
