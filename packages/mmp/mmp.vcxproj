@@ -89,16 +89,17 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>..\..\3rd\glfw-2.7.9\include;..\..\3rd\glew-1.11.0\include;..\..\3rd\glm-0.9.4.6\glm;include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\3rd\bullet3-2.82\src;..\..\3rd\glfw-2.7.9\include;..\..\3rd\glew-1.11.0\include;..\..\3rd\glm-0.9.4.6\glm;include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>..\..\3rd\glfw-2.7.9\support\msvc140\Release\Win32;..\..\3rd\glew-1.11.0\lib\Release\Win32;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>glew32.lib;glfw.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\..\3rd\bullet3-2.82\lib\Debug;..\..\3rd\glfw-2.7.9\support\msvc140\Release\Win32;..\..\3rd\glew-1.11.0\lib\Release\Win32;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>glew32.lib;glfw.lib;OpenGLSupport_Debug.lib;BulletDynamics_Debug.lib;BulletCollision_Debug.lib;LinearMath_Debug.lib;opengl32.lib;glu32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy "..\..\3rd\glew-1.11.0\bin\Release\Win32\glew32.dll" $(OutDir) /s /e</Command>
+      <Command>xcopy "..\..\3rd\glew-1.11.0\bin\Release\Win32\glew32.dll" $(OutDir) /s /h /d /y</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -125,18 +126,18 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>..\..\3rd\glfw-2.7.9\include;..\..\3rd\glew-1.11.0\include;..\..\3rd\glm-0.9.4.6\glm;include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\3rd\bullet3-2.82\src;..\..\3rd\glfw-2.7.9\include;..\..\3rd\glew-1.11.0\include;..\..\3rd\glm-0.9.4.6\glm;include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>..\..\3rd\glfw-2.7.9\support\msvc140\Release\Win32;..\..\3rd\glew-1.11.0\lib\Release\Win32;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>glew32.lib;glfw.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\..\3rd\bullet3-2.82\lib\Release;..\..\3rd\glfw-2.7.9\support\msvc140\Release\Win32;..\..\3rd\glew-1.11.0\lib\Release\Win32;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>glew32.lib;glfw.lib;OpenGLSupport.lib;BulletDynamics.lib;BulletCollision.lib;LinearMath.lib;opengl32.lib;glu32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy "..\..\3rd\glew-1.11.0\bin\Release\Win32\glew32.dll" $(OutDir) /s /e</Command>
+      <Command>xcopy "..\..\3rd\glew-1.11.0\bin\Release\Win32\glew32.dll" $(OutDir) /s /h /d /y</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -161,11 +162,18 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="libmmp\glm_helper.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="libmmp\bulletdebugdrawer.cpp" />
+    <ClCompile Include="libmmp\bulletphysics.cpp" />
+    <ClCompile Include="libmmp\glm_helper.cpp" />
     <ClCompile Include="libmmp\interpolation.cpp" />
+    <ClCompile Include="libmmp\mmdphysics.cpp" />
+    <ClCompile Include="libmmp\motioncontroller.cpp" />
+    <ClCompile Include="libmmp\pmx.cpp" />
     <ClCompile Include="libmmp\shader.cpp" />
     <ClCompile Include="libmmp\texthandle.cpp" />
     <ClCompile Include="libmmp\vmd.cpp" />
