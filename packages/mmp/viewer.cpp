@@ -20,16 +20,25 @@
 
 #include "glfw_func_callbacks.h"
 
+#include "libtext.h"
+#include "libpath.h"
+
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
 #endif
 
 //#define MODELDUMP true
-#define DATA_PATH ""
 
 using namespace std;
 using namespace ClosedMMDFormat;
 
+static string __DATA_PATH()
+{
+	wstring wpath = libpath::getThisDllPath();
+	string path = libtext::wstring2string(wpath);
+	return path;
+}
+#define DATA_PATH	__DATA_PATH()
 
 Viewer::Viewer(string modelPath, string motionPath,string musicPath)
 {
@@ -664,8 +673,8 @@ void Viewer::hackShaderFiles()
 		ifstream test("shaders/model.vert");
 		if(!test.is_open())
 		{
-			vertPath=DATA_PATH"/shaders/model.vert";
-			fragPath=DATA_PATH"/shaders/model.frag";
+			vertPath=DATA_PATH+"/shaders/model.vert";
+			fragPath=DATA_PATH+"/shaders/model.frag";
 		}
 		else
 		{
@@ -683,8 +692,8 @@ void Viewer::hackShaderFiles()
 		ifstream test2("shaders/bulletDebug.vert");
 		if(!test2.is_open())
 		{
-			vertPath=DATA_PATH"/shaders/bulletDebug.vert";
-			fragPath=DATA_PATH"/shaders/bulletDebug.frag";
+			vertPath=DATA_PATH+"/shaders/bulletDebug.vert";
+			fragPath=DATA_PATH+"/shaders/bulletDebug.frag";
 		}
 		else
 		{
@@ -704,7 +713,7 @@ void Viewer::hackShaderFiles()
 		ifstream test("shaders/model.vert");
 		if(!test.is_open())
 		{
-			shaderProgram=compileShaders(DATA_PATH"/shaders/model.vert",DATA_PATH"/shaders/model.frag");
+			shaderProgram=compileShaders(DATA_PATH+"/shaders/model.vert",DATA_PATH+"/shaders/model.frag");
 		}
 		else
 		{
@@ -715,8 +724,8 @@ void Viewer::hackShaderFiles()
 		ifstream test2("shaders/bulletDebug.vert");
 		if(!test2.is_open())
 		{
-			bulletVertPath=DATA_PATH"/shaders/bulletDebug.vert";
-			bulletFragPath=DATA_PATH"/shaders/bulletDebug.frag";
+			bulletVertPath=DATA_PATH+"/shaders/bulletDebug.vert";
+			bulletFragPath=DATA_PATH+"/shaders/bulletDebug.frag";
 		}
 		else
 		{

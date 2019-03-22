@@ -170,6 +170,8 @@ xcopy "..\..\3rd\SDL2-2.0.9\lib\x86\*.dll" $(OutDir) /s /h /d /y</Command>
   <ItemGroup>
     <ClInclude Include="glfw_func_callbacks.h" />
     <ClInclude Include="libmmp\glm_helper.h" />
+    <ClInclude Include="libpath.h" />
+    <ClInclude Include="libtext.h" />
     <ClInclude Include="pmxvLogger.h" />
     <ClInclude Include="sound.h" />
     <ClInclude Include="stdafx.h" />
@@ -188,6 +190,8 @@ xcopy "..\..\3rd\SDL2-2.0.9\lib\x86\*.dll" $(OutDir) /s /h /d /y</Command>
     <ClCompile Include="libmmp\shader.cpp" />
     <ClCompile Include="libmmp\texthandle.cpp" />
     <ClCompile Include="libmmp\vmd.cpp" />
+    <ClCompile Include="libpath.cpp" />
+    <ClCompile Include="libtext.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="pmxvLogger.cpp" />
     <ClCompile Include="sound.cpp" />
