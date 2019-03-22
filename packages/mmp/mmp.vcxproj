@@ -101,7 +101,9 @@
     <PostBuildEvent>
       <Command>xcopy "..\..\3rd\glew-1.11.0\bin\Release\Win32\glew32.dll" $(OutDir) /s /h /d /y
 xcopy "..\..\3rd\SDL2_mixer-2.0.4\lib\x86\*.dll" $(OutDir) /s /h /d /y
-xcopy "..\..\3rd\SDL2-2.0.9\lib\x86\*.dll" $(OutDir) /s /h /d /y</Command>
+xcopy "..\..\3rd\SDL2-2.0.9\lib\x86\*.dll" $(OutDir) /s /h /d /y
+xcopy "..\..\data\*" $(OutDir)\data /y /e /i /q
+xcopy "..\..\shaders\*" $(OutDir)\shaders /y /e /i /q</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
