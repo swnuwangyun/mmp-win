@@ -404,7 +404,10 @@ namespace ClosedMMDFormat
 			getPMXIndex(miku, bone->parentBoneIndex, pmxInfo.boneIndexSize);
 			
 			if(bone->parentBoneIndex != -1) {
-				bone->parent = pmxInfo.bones[bone->parentBoneIndex];
+				if (bone->parentBoneIndex >= pmxInfo.bones.size())
+					printf("Error: parentBoneIndex out of range\r\n");
+				else
+					bone->parent = pmxInfo.bones[bone->parentBoneIndex];
 			} else {
 				bone->parent = NULL;
 			}
