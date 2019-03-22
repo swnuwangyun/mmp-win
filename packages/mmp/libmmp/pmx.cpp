@@ -1,4 +1,4 @@
-#include "pmx.h"
+﻿#include "pmx.h"
 #include "glm_helper.h"
 
 #include <fstream>
@@ -79,11 +79,12 @@ namespace ClosedMMDFormat
 	     
 		if (pmxInfo.unicode_type == PMX_ENCODE_UTF16) {
 			//WARNING: UTF-16 text-pulling code does NOT support the extra (multi-byte) codesets of UTF-16!!!!             
-			unsigned short c16[text_size / 2 + 1];
+			unsigned short *c16 = new unsigned short[text_size / 2 + 1];
 			memset(c16, 0, text_size + 2);
 			miku.read((char*)c16, text_size);
 
 			result = UTF16to8(c16);
+			delete c16;
 
 			/*ofstream converted;
 			converted.open("converted.txt", ios::out | ios::app);
@@ -95,10 +96,11 @@ namespace ClosedMMDFormat
 			//exit(EXIT_SUCCESS);
 		} else {
 			//WARNING: Loading UTF-8 encoded PMX files is untested
-			char c8[text_size];
+			char *c8 = new char[text_size];
 			miku.read((char*)&c8, text_size);
 
 			result = c8;
+			delete c8;
 		}
 	}
 
