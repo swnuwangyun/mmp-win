@@ -156,6 +156,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="libmmp\interpolation.cpp" />
+    <ClCompile Include="libmmp\texthandle.cpp" />
     <ClCompile Include="mmp.cpp" />
     <ClCompile Include="stdafx.cpp" />
   </ItemGroup>
