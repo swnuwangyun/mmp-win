@@ -16,6 +16,8 @@
 
 using namespace std;
 
+#define DATA_PATH ""
+
 void printHelpInfo()
 {
 	cout<<"This is PMXViewer, a demonstration using the MikuMikuPenguin library."<<endl
