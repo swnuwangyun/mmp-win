@@ -1,4 +1,4 @@
-#include "bulletdebugdrawer.h"
+﻿#include "bulletdebugdrawer.h"
 
 #include "shader.h"
 #include "motioncontroller.h"
@@ -53,7 +53,9 @@ void BulletDebugDrawer::render()
 	
 	glBindBuffer(GL_ARRAY_BUFFER,VertexArrayBuffer);	
 	
-	float lineV[lines.size()][8];
+	if (lines.size() > 1024 * 10)
+		throw "Over limit";
+	float lineV[1024 * 10][8];
 	for(int i=0; i<lines.size(); ++i)
 	{
 		lineV[i][0]=lines[i].x;
