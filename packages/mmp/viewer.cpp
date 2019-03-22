@@ -290,26 +290,46 @@ void Viewer::drawModel(bool drawEdges)
 	int faceCount=0;
 	for(int m=0; m<pmxInfo->material_continuing_datasets; ++m) //pmxInfo->material_continuing_datasets
 	{
-		
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D,textures[pmxInfo->materials[m]->textureIndex]);
-		glUniform1iARB(uniformVars[uTextureSampler], 0);
+		if (pmxInfo->materials[m]->textureIndex == -1)
+		{
+			cout << "Error: " << "pmxInfo->materials[m]->textureIndex==-1" << endl;
+		}
+		else
+		{
+			glActiveTexture(GL_TEXTURE0);
+			glBindTexture(GL_TEXTURE_2D, textures[pmxInfo->materials[m]->textureIndex]);
+			glUniform1iARB(uniformVars[uTextureSampler], 0);
+		}
 		
 		if((int)pmxInfo->materials[m]->sphereMode>0)
 		{
-			glActiveTexture(GL_TEXTURE1);
-			glEnable(GL_TEXTURE_2D);
-			glBindTexture(GL_TEXTURE_2D,textures[pmxInfo->materials[m]->sphereIndex]);
-			glUniform1iARB(uniformVars[uSphereSampler], 1);
+			if (pmxInfo->materials[m]->sphereIndex != -1)
+			{
+				glActiveTexture(GL_TEXTURE1);
+				glEnable(GL_TEXTURE_2D);
+				glBindTexture(GL_TEXTURE_2D, textures[pmxInfo->materials[m]->sphereIndex]);
+				glUniform1iARB(uniformVars[uSphereSampler], 1);
+			}
+			else
+			{
+				cout << "Error: " << "pmxInfo->materials[m]->sphereIndex==-1" << endl;
+			}
 		}
 		
 		if((int)pmxInfo->materials[m]->shareToon==0)
 		{
-			glActiveTexture(GL_TEXTURE2);
-			glEnable(GL_TEXTURE_2D);
-			
-			glBindTexture(GL_TEXTURE_2D,textures[pmxInfo->materials[m]->toonTextureIndex]);
-			glUniform1iARB(uniformVars[uToonSampler], 2);
+			if (pmxInfo->materials[m]->toonTextureIndex!=-1)
+			{
+				glActiveTexture(GL_TEXTURE2);
+				glEnable(GL_TEXTURE_2D);
+
+				glBindTexture(GL_TEXTURE_2D, textures[pmxInfo->materials[m]->toonTextureIndex]);
+				glUniform1iARB(uniformVars[uToonSampler], 2);
+			}
+			else
+			{
+				cout << "Error: " << "pmxInfo->materials[m]->toonTextureIndex==-1" << endl;
+			}
 		}
 		else if((int)pmxInfo->materials[m]->shareToon==1)
 		{
@@ -585,10 +605,11 @@ void Viewer::loadTextures()
 		int width, height, channels;
 		unsigned char* image;
 		stringstream loc;
-		if(i!=10) loc<<"data/share/toon0"<<i<<".bmp";
-		else loc<<"data/share/toon10.bmp";
+		if(i!=10) loc<< DATA_PATH<<"\\data\\share\\toon0"<<i<<".bmp";
+		else loc<< DATA_PATH<<"\\data\\share\\toon10.bmp";
 		
-		ifstream test(loc.str());
+		string locstr = loc.str();
+		ifstream test(locstr);
 		if(!test.is_open())
 		{
 			//cerr<<"Texture file could not be found: "<<loc.str()<<endl;
