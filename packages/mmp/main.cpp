@@ -14,6 +14,8 @@
 #include "pmxvLogger.h"
 #include "viewer.h"
 
+#include "libtext.h"
+
 using namespace std;
 
 void printHelpInfo()
@@ -69,10 +71,16 @@ int main(int argc, char** argv)
 				if(str.substr(str.size()-4)==".pmx")
 				{
 					model_file=str;
+					wstring wmodel_file = libtext::string2wstring(model_file);
+					wmodel_file = libtext::replace(wmodel_file, L"\\", L"/");
+					model_file = libtext::wstring2string(wmodel_file);
 				}
 				else if(str.substr(str.size()-4)==".vmd")
 				{
 					motion_file=str;
+					wstring wmotion_file = libtext::string2wstring(motion_file);
+					wmotion_file = libtext::replace(wmotion_file, L"\\", L"/");
+					motion_file = libtext::wstring2string(wmotion_file);
 				}
 			}
 		}
