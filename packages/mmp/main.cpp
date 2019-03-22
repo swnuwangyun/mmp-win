@@ -16,8 +16,6 @@
 
 using namespace std;
 
-#define DATA_PATH ""
-
 void printHelpInfo()
 {
 	cout<<"This is PMXViewer, a demonstration using the MikuMikuPenguin library."<<endl
@@ -28,8 +26,6 @@ void printHelpInfo()
 	<<"\tIf libmmp was compiled without SDL2_mixer support, no music will play."<<endl<<endl
 	<<"  --help\tdisplay this help and exit"<<endl
 	<<"  --version\toutput version information and exit"<<endl<<endl
-	<<"FOR JAPANESE DOCUMENTATION, SEE:"<<endl
-	<<"<file://"<<DATA_PATH<<"/doc/README_JP.html>"<<endl<<endl
 	<<"Report bugs to <ibenrunnin@gmail.com> (English or Japanese is ok)."<<endl;
 }
 
