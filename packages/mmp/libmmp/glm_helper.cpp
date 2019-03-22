@@ -1,6 +1,8 @@
 #include "glm_helper.h"
 #include <iostream>
 
+#define M_PI	3.1415926
+
 namespace
 {
 	float safe_asin(float x)
