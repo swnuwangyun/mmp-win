@@ -1,4 +1,4 @@
-#include "mmdphysics.h"
+﻿#include "mmdphysics.h"
 #include "pmx.h"
 #include "glm_helper.h"
 
@@ -178,7 +178,7 @@ void MMDPhysics::createJoints()
 		
 		glm::mat4 world = createRigidMatrix(joint->position, joint->rotation);	// ジョイントの行列（モデルローカル座標系）
 		
-		btRigidBody *rigidbody_a,*rigidbody_b;
+		btRigidBody *rigidbody_a = NULL,*rigidbody_b = NULL;
 		glm::mat4 a,b,frameInA,frameInB;
 		
 		rigidbody_a = rigidBodies[joint->relatedRigidBodyIndexA];
