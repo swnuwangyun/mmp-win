@@ -16,7 +16,7 @@ wstring getThisDllPath()
 	HMODULE hm = NULL;
 	wchar_t buffer[512]={0};
 	GetModuleHandleExW(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, (LPWSTR)&getThisDllPath, &hm);
-	GetModuleFileName(hm, buffer ,sizeof(buffer));
+	GetModuleFileNameW(hm, buffer ,sizeof(buffer));
 	wstring path = wstring(buffer);
 	path.erase(path.find_last_of(L"\\"));
 	return path;
@@ -25,7 +25,7 @@ wstring getThisDllPath()
 wstring getAppPath()
 {
 	wchar_t buffer[512]={0};
-	GetModuleFileName(NULL, buffer ,sizeof(buffer));
+	GetModuleFileNameW(NULL, buffer ,sizeof(buffer));
 	wstring path = wstring(buffer);
 	path.erase(path.find_last_of(L"\\"));
 	return path;
@@ -33,33 +33,33 @@ wstring getAppPath()
 
 wstring getAppDataPath()
 {
-	TCHAR szPath[MAX_PATH]; 
+	wchar_t szPath[MAX_PATH];
 	ZeroMemory(szPath, MAX_PATH); 
-	SHGetSpecialFolderPath(NULL, szPath, CSIDL_APPDATA, FALSE);
+	SHGetSpecialFolderPathW(NULL, szPath, CSIDL_APPDATA, FALSE);
 	return szPath;
 }
 
 wstring getLocalAppDataPath()
 {
-	TCHAR szPath[MAX_PATH]; 
+	wchar_t szPath[MAX_PATH];
 	ZeroMemory(szPath, MAX_PATH); 
-	SHGetSpecialFolderPath(NULL, szPath, CSIDL_LOCAL_APPDATA, FALSE);
+	SHGetSpecialFolderPathW(NULL, szPath, CSIDL_LOCAL_APPDATA, FALSE);
 	return szPath;
 }
 
 wstring getSystemPath()
 {
-	TCHAR szPath[MAX_PATH]; 
+	wchar_t szPath[MAX_PATH];
 	ZeroMemory(szPath, MAX_PATH); 
-	SHGetSpecialFolderPath(NULL, szPath, CSIDL_SYSTEM, FALSE);
+	SHGetSpecialFolderPathW(NULL, szPath, CSIDL_SYSTEM, FALSE);
 	return szPath;
 }
 
 wstring getTempPath()
 {
-	TCHAR szPath[MAX_PATH]; 
+	wchar_t szPath[MAX_PATH];
 	ZeroMemory(szPath, MAX_PATH); 
-	GetTempPath(MAX_PATH, szPath);
+	GetTempPathW(MAX_PATH, szPath);
 	return szPath;
 }
 
