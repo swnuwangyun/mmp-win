@@ -1,5 +1,6 @@
 ﻿#include "pmx.h"
 #include "glm_helper.h"
+#include "texthandle.h"
 
 #include <fstream>
 #include <iostream>
@@ -156,6 +157,8 @@ namespace ClosedMMDFormat
 		getPMXText(miku, pmxInfo, pmxInfo.modelNameEnglish);
 		getPMXText(miku, pmxInfo, pmxInfo.comment);
 		getPMXText(miku, pmxInfo, pmxInfo.commentEnglish);
+		pmxInfo.wmodelName = UTF8ToUnicode(pmxInfo.modelName);
+		pmxInfo.wcomment = UTF8ToUnicode(pmxInfo.comment);
 		
 		//***Pull Vertex Info***
 		miku.read((char*)&pmxInfo.vertex_continuing_datasets, 4);
@@ -292,6 +295,7 @@ namespace ClosedMMDFormat
 			getPMXText(miku, pmxInfo, material->name);
 			//cout<<"Material Name: "<<material->name<<endl;
 			getPMXText(miku, pmxInfo, material->nameEng);
+			material->wname = UTF8ToUnicode(material->name);
 			//cout<<material->nameEng<<endl;
 						
 			//***Pull Diffuse Color***
@@ -392,6 +396,7 @@ namespace ClosedMMDFormat
 			
 			getPMXText(miku, pmxInfo, bone->name);
 			getPMXText(miku, pmxInfo, bone->nameEng);
+			bone->wname = UTF8ToUnicode(bone->name);
 			
 			//***Pull Position***
 			miku.read((char*)&bone->position.x, 4);
@@ -543,6 +548,7 @@ namespace ClosedMMDFormat
 			PMXMorph *morph = new PMXMorph;
 			getPMXText(miku, pmxInfo, morph->name);
 			getPMXText(miku, pmxInfo, morph->nameEng);
+			morph->wname = UTF8ToUnicode(morph->name);
 			
 			//cout<<"Name: "<<morph->name<<endl;
 			//cout<<"Name English: "<<morph->nameEng<<endl;
@@ -705,6 +711,7 @@ namespace ClosedMMDFormat
 			PMXDisplayFrame *df = new PMXDisplayFrame();
 			getPMXText(miku, pmxInfo, df->name);
 			getPMXText(miku, pmxInfo, df->nameEng);
+			df->wname = UTF8ToUnicode(df->name);
 			
 			//uint8_t tmp;
 			//miku.read((char*)&tmp, 1);
@@ -744,6 +751,7 @@ namespace ClosedMMDFormat
 			PMXRigidBody *rb = new PMXRigidBody();
 			getPMXText(miku, pmxInfo, rb->name);
 			getPMXText(miku, pmxInfo, rb->nameEng);
+			rb->wname = UTF8ToUnicode(rb->name);
 			
 			getPMXIndex(miku, rb->relatedBoneIndex, pmxInfo.boneIndexSize);
 			
@@ -790,6 +798,7 @@ namespace ClosedMMDFormat
 			PMXJoint *joint = new PMXJoint;
 			getPMXText(miku, pmxInfo, joint->name);
 			getPMXText(miku, pmxInfo, joint->nameEng);
+			joint->wname = UTF8ToUnicode(joint->name);
 			
 			miku.read((char*)&joint->type, 1);
 			

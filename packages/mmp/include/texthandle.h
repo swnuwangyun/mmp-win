@@ -7,7 +7,7 @@
 #define MAX_BUF 2048
 std::string sjisToUTF8(const char *sjis);
 std::string UTF8ToSJIS(const char *utf8);
-
+std::wstring UTF8ToUnicode(std::string utf8);
 
 
 #endif

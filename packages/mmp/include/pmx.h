@@ -135,6 +135,7 @@ namespace ClosedMMDFormat
 	struct PMXMaterial
 	{
 		std::string name;
+		std::wstring wname;
 		std::string nameEng;
 		
 		glm::vec4 diffuse;
@@ -187,6 +188,7 @@ namespace ClosedMMDFormat
 		 * */
 		
 		std::string name;
+		std::wstring wname;
 		std::string nameEng;
 		
 		glm::vec3 position;
@@ -303,6 +305,7 @@ namespace ClosedMMDFormat
 	struct PMXMorph
 	{
 		std::string name;
+		std::wstring wname;
 		std::string nameEng;
 		
 		uint8_t controlPanel; //(PMD:Category) 1:Eyebrow(bottom left) 2:Eye(upper left) 4:Other(bottom right) 0:System reserved
@@ -322,6 +325,7 @@ namespace ClosedMMDFormat
 	struct PMXDisplayFrame
 	{
 		std::string name;
+		std::wstring wname;
 		std::string nameEng;
 		
 		bool specialFrameFlag; //0:Normal Frame 1:Special Frame
@@ -333,6 +337,7 @@ namespace ClosedMMDFormat
 	struct PMXRigidBody
 	{
 		std::string name;
+		std::wstring wname;
 		std::string nameEng;
 		
 		int relatedBoneIndex; //Set to -1 when irrelevant/unrelated
@@ -363,6 +368,7 @@ namespace ClosedMMDFormat
 	struct PMXJoint
 	{
 		std::string name;
+		std::wstring wname;
 		std::string nameEng;
 		
 		bool type; //0:Spring 6DOF; in PMX 2.0 always set to 0 (included to give room for expansion)
@@ -434,10 +440,12 @@ namespace ClosedMMDFormat
 		//Model Info
 		std::string modelName;							//!< \if ENGLISH \brief  The name of the model (in Japanese) \endif
 														//!< \if JAPANESE \brief モデルの名前（日本語で）。 \endif
+		std::wstring wmodelName;
 		std::string modelNameEnglish;					//!< \if ENGLISH \brief  The name of the model (in English) \endif
 														//!< \if JAPANESE \brief モデルの名前（英語で）。 \endif
 		std::string comment;							//!< \if ENGLISH \brief  Comments about the model (in Japanese) \endif
 														//!< \if JAPANESE \brief モデルに関するコメント（日本語で）。 \endif
+		std::wstring wcomment;
 		std::string commentEnglish;						//!< \if ENGLISH \brief  Comments about the model (in English) \endif
 														//!< \if JAPANESE \brief モデルに関するコメント（英語で）。 \endif
 		

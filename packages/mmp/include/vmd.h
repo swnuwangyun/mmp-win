@@ -21,7 +21,8 @@ namespace ClosedMMDFormat
 
 	struct VMDBoneFrame
 	{
-		std::string name; //char[15] before UTF8 conversion
+		std::string name; //UTF8 string
+		std::wstring wname;//Unicode string
 		
 		unsigned frame;
 		
@@ -39,7 +40,8 @@ namespace ClosedMMDFormat
 
 	struct VMDMorphFrame
 	{
-		std::string name; //char[15] before UTF8 conversion
+		std::string name; //UTF8 string
+		std::wstring wname; //Unicode string
 		unsigned frame;
 		float value;
 		
@@ -81,7 +83,8 @@ namespace ClosedMMDFormat
 	
 	struct VMDIKInfo
 	{
-		std::string name; //char[20] before UTF8 conversion
+		std::string name; //UTF8 string
+		std::wstring wname;//Unicode string
 		bool isOn; //0:OFF 1:ON
 	};
 	
@@ -106,7 +109,8 @@ namespace ClosedMMDFormat
 	*/
 	struct VMDInfo
 	{
-		std::string modelName; //char[20] before UTF8 conversion
+		std::string modelName; //UTF8 string
+		std::wstring wmodeName;//Unicode string
 		
 		std::vector<VMDBoneFrame> boneFrames;
 		std::vector<VMDMorphFrame> morphFrames;
