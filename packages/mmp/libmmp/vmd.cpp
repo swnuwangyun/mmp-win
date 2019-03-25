@@ -27,6 +27,7 @@ namespace ClosedMMDFormat
 		char modelName[20];
 		miku.read((char*)&modelName, 20);
 		vmdInfo.modelName=sjisToUTF8(modelName);
+		vmdInfo.wmodeName = UTF8ToUnicode(vmdInfo.modelName);
 		
 		cout<<headerStr<<endl;
 		//cout<<vmdInfo.modelName<<endl;
@@ -46,6 +47,7 @@ namespace ClosedMMDFormat
 			char name[15];
 			miku.read((char*)name, 15);
 			f->name=sjisToUTF8(name);
+			f->wname = UTF8ToUnicode(f->name);
 			
 			miku.read((char*)&f->frame, 4);
 			
@@ -128,6 +130,7 @@ namespace ClosedMMDFormat
 			char name[15];
 			miku.read((char*)&name, 15);
 			f->name = sjisToUTF8(name);
+			f->wname = UTF8ToUnicode(f->name);
 			
 			miku.read((char*)&f->frame, 4);
 			miku.read((char*)&f->value, 4);
@@ -205,9 +208,6 @@ namespace ClosedMMDFormat
 		cout<<"Loading SelfShadow frames...";
 		for(int i=0; i < vmdInfo.selfShadowFrames.size(); ++i)
 		{
-
-
-
 			VMDSelfShadowFrame *f = &vmdInfo.selfShadowFrames[i];
 			
 			miku.read((char*)&f->frame,    4);

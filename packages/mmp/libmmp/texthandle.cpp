@@ -1,5 +1,5 @@
 #include "texthandle.h"
-
+#include "..\libtext.h"
 #include <iconv.h>
 #include <sstream>
 #include <string.h>
@@ -69,4 +69,9 @@ std::string UTF8ToSJIS(const char *utf8)
 	std::stringstream ss;
 	ss<<outbuf;
 	return ss.str();
+}
+
+std::wstring UTF8ToUnicode(std::string utf8)
+{
+	return libtext::UTF8_To_wstring(utf8);
 }
