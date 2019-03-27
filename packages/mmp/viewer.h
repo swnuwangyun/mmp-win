@@ -93,6 +93,7 @@ class Viewer
 	int ticks;
 	
 	glm::vec3 modelTranslate;
+	GLfloat fov;
 };
 
 

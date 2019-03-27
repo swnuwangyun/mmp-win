@@ -1,4 +1,4 @@
-#include "viewer.h"
+﻿#include "viewer.h"
 
 #include <iostream>
 #include <fstream>
@@ -125,6 +125,7 @@ Viewer::Viewer(string modelPath, string motionPath,string musicPath)
 	ticks=0;
 	
 	modelTranslate=glm::vec3(0.0f,-10.0f,0.0f);
+	fov = 45.0f;
 }
 
 void Viewer::handleLogic()
@@ -239,7 +240,7 @@ void Viewer::run()
 
 void Viewer::setCamera(GLuint MVPLoc)
 {
-	glm::mat4 Projection = glm::perspective(45.0f, 16.0f/9.0f, 0.1f, 100.0f);
+	glm::mat4 Projection = glm::perspective(fov, 16.0f/9.0f, 0.1f, 100.0f);
 	// Camera matrix
 	glm::mat4 View       = glm::lookAt(
 		glm::vec3(cameraPosition.x,cameraPosition.y,-cameraPosition.z), // Camera is at (4,3,3), in World Space
@@ -853,13 +854,37 @@ Viewer::~Viewer()
 void Viewer::handleEvents()
 {
 	glfwPollEvents();
+
+	//调整模型变换矩阵，修改人物模型在世界坐标系中的位置（修改摄像头的位置，也能达到类似的效果）
 	if(glfwGetKey(GLFW_KEY_UP)==GLFW_PRESS)
 	{
-		modelTranslate.y-=0.1;
+		modelTranslate.y-=0.2;
 	}
 	else if(glfwGetKey(GLFW_KEY_DOWN)==GLFW_PRESS)
 	{
-		modelTranslate.y+=0.1;
+		modelTranslate.y+=0.2;
+	}
+	if (glfwGetKey(GLFW_KEY_LEFT) == GLFW_PRESS)
+	{
+		modelTranslate.x -= 0.2;
+	}
+	else if (glfwGetKey(GLFW_KEY_RIGHT) == GLFW_PRESS)
+	{
+		modelTranslate.x += 0.2;
+	}
+
+	//调整透射变换矩阵，修改视野FOV(Field of View)，相当于摄像头拉近和拉远焦距，产生放大镜/望远镜的功能
+	else if (glfwGetKey(GLFW_KEY_KP_ADD) == GLFW_PRESS)
+	{
+		fov -= 1.0f;
+		if (fov < 1.0f)
+			fov = 1.0f;
+	}
+	else if (glfwGetKey(GLFW_KEY_KP_SUBTRACT) == GLFW_PRESS)
+	{
+		fov += 1.0f;
+		if (fov > 90.0f)
+			fov = 90.0f;
 	}
 }
 
