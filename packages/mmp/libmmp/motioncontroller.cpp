@@ -217,6 +217,10 @@ void VMDMotionController::updateBoneMatrix()
 	for(unsigned i = 0; i < pmxInfo.bone_continuing_datasets; i++)
 	{
 		skinMatrix[i] = pmxInfo.bones[i]->calculateGlobalMatrix() * invBindPose[i];
+		if (!pmxInfo.bones[i]->nameEng.empty())
+		{
+			printf("%s\n", pmxInfo.bones[i]->nameEng.c_str());
+		}
 	}
 	glUniformMatrix4fv(Bones_loc, pmxInfo.bone_continuing_datasets, GL_FALSE, (const GLfloat*)skinMatrix);
 }
@@ -227,6 +231,8 @@ void VMDMotionController::updateBoneAnimation()
 	//exit(EXIT_FAILURE);
 	
 	//Root+FKBones
+
+	int num = 0;
 	for(unsigned i = 0; i < pmxInfo.bone_continuing_datasets; i++)
 	{
 		PMXBone   *b  = pmxInfo.bones[i];
@@ -246,6 +252,7 @@ void VMDMotionController::updateBoneAnimation()
 			bonePos[i] = p0 = (*ite_boneKeyFrames[i]).translation;
 			
 			const BezierParameters &bez=(*ite_boneKeyFrames[i]).bezier;
+			
 			
 			if(++ite_boneKeyFrames[i] != boneKeyFrames[i].end())
 			{
@@ -288,13 +295,13 @@ void VMDMotionController::updateBoneAnimation()
 			{
 				b->Local = glm::translate( bonePos[i] + b->position ) * glm::toMat4(boneRot[i]);
 			}
+
+			num++;
 		}
 	}
 
 	updateIK();
 }
-
-
 
 void VMDMotionController::updateIK()
 {
@@ -417,6 +424,11 @@ void VMDMotionController::updateIK()
 		}
 		cerr<<endl;
 	}
+}
+
+void VMDMotionController::setBoneData(const float* data)
+{
+
 }
 
 bool VMDMotionController::advanceTime()

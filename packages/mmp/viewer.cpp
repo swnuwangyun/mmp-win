@@ -62,11 +62,11 @@ Viewer::Viewer(string modelPath, string motionPath,string musicPath)
 	//vmdInfo=&readVMD("data/motion/Watashi no Jikan/私の時間_short_Lat式ミク.vmd");
 	
 	//Below is a test for VMD file-writing. Write the current vmdInfo object to a file, then read back the output into a new vmdInfo object
+	
 	//writeVMD(*vmdInfo,"testVMD.vmd");
 	//vmdInfo=&readVMD("testVMD.vmd");
 	
 	initGLFW();
-	
 	
 	//NOTE: shaderProgram compilation now handled in hackShaderFiles() within initGLFW()
 	/*ifstream test("shaders/model.vert");
@@ -80,16 +80,12 @@ Viewer::Viewer(string modelPath, string motionPath,string musicPath)
 	}
 	test.close();*/
 	
-	
-	
 	loadTextures();
 
-	
 	initBuffers();
 	linkShaders(shaderProgram);
 	glUseProgram(shaderProgram);
 	
-
 	initUniformVarLocations();
 	
 	MVP_loc = glGetUniformLocation(shaderProgram, "MVP");
@@ -109,7 +105,6 @@ Viewer::Viewer(string modelPath, string motionPath,string musicPath)
 	//Setup MotionController, Physics
 	glBindBuffer(GL_ARRAY_BUFFER, Buffers[VertexArrayBuffer]);
 	motionController=new VMDMotionController(*pmxInfo,*vmdInfo,shaderProgram);
-	
 	
 	initSound(musicPath);
 	
@@ -140,13 +135,13 @@ void Viewer::handleLogic()
 		if (!motionController->advanceTime())
 		{
 			motionController->updateVertexMorphs();
-			motionController->updateBoneAnimation();
+			motionController->updateBoneAnimation(); // 必须
 		}
 		//Debug- hold model in bind pose
 		//holdModelInBindPose();
 		
 		mmdPhysics->updateBones(doPhysics);
-		motionController->updateBoneMatrix();
+		motionController->updateBoneMatrix(); // 必须
 		
 		glUseProgram(bulletPhysics->debugDrawer->shaderProgram);
 		setCamera(bulletPhysics->debugDrawer->MVPLoc);
@@ -234,6 +229,8 @@ void Viewer::run()
 		render();
 		
 		glfwSwapBuffers();
+
+		printf("%f", glfwGetTime() - startTime);
 	}
 }
 
@@ -685,7 +682,6 @@ void Viewer::hackShaderFiles()
 {
 	//If using OpenGL 3.0, produce temporary shader files that use #version 130 (to prevent issues with OpenGL 3.0/GLSL 1.30 users
 	//Otherwise, use #version 150 to avoid issues in Mac OSX (which does not support #version 130)
-	
 	if(GLVersionMajor==3 && (GLVersionMinor==0 || GLVersionMinor==1))
 	{
 		cout<<"Going to hack shader files for OpenGL "<<GLVersionMajor<<"."<<GLVersionMinor<<" (assuming GLSL version 130 supported)"<<endl;
@@ -765,8 +761,8 @@ void Viewer::initGLFW()
 	static const int redBits=0,greenBits=0,blueBits=0,alphaBits=0,depthBits=32,stencilBits=0;
 	
 	
-	//First, try to start in OpenGL 3.2+ mode
-	GLVersionHintMajor=3,GLVersionHintMinor=2;
+	//First, try to start in OpenGL 4.2+ mode
+	GLVersionHintMajor=4,GLVersionHintMinor=2;
 	glfwOpenWindowHint(GLFW_FSAA_SAMPLES, 2); //2x antialiasing
 	glfwOpenWindowHint(GLFW_OPENGL_VERSION_MAJOR, GLVersionHintMajor); //OpenGL version
 	glfwOpenWindowHint(GLFW_OPENGL_VERSION_MINOR, GLVersionHintMinor);
@@ -778,8 +774,6 @@ void Viewer::initGLFW()
 	if( !glfwOpenWindow( SCREEN_WIDTH, SCREEN_HEIGHT, redBits,greenBits,blueBits,alphaBits, depthBits,stencilBits, GLFW_WINDOW ) )
 	{
 		cout<<"Failed to open GLFW window"<<endl;
-		
-		GLVersionHintMajor=3,GLVersionHintMinor=0;
 		
 		glfwOpenWindowHint(GLFW_OPENGL_VERSION_MAJOR, GLVersionHintMajor);
 		glfwOpenWindowHint(GLFW_OPENGL_VERSION_MINOR, GLVersionHintMinor);

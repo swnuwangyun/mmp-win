@@ -63,7 +63,7 @@ class VMDMotionController
 	 * \endif
 	 */
 	bool advanceTime();
-	
+	void setBoneData(const float* data);
 	
 	//public variables
 	glm::mat4 *skinMatrix; 				//!< \if ENGLISH \brief A pointer to an array of bone transformation matrices that represent the model's current pose. \endif
@@ -80,8 +80,7 @@ class VMDMotionController
 	void updateChildren(ClosedMMDFormat::PMXBone *linkBone);
 	void updateIK();
 	void solveIK(ClosedMMDFormat::PMXBone *joint, int effector, glm::vec3 targetPos, int numIteration, int numBones, int numMaxBones);
-	
-	
+
 	ClosedMMDFormat::PMXInfo &pmxInfo;
 	ClosedMMDFormat::VMDInfo &vmdInfo;
 	
