@@ -47,9 +47,9 @@ public:
 
 	virtual bool init(const char* version);
 	virtual void setModelPath(const char* modePath, const char* motionPath, const char* musicPath);
-	virtual void run();
+	virtual void render();
 	virtual void setBoneData(const float* data);
-	virtual void copyOfTexture(MMD_Texture* dst);
+	virtual void copyOfTextureData(char* dst);
 	virtual void setLogPath(const char* logPath);
 	virtual bool unInit();
 
@@ -86,7 +86,10 @@ private:
 	BulletPhysics*		m_bulletPhysics;
 	MMDPhysics*			m_mmdPhysics;
 	glm::vec3			m_modelTranslate;
+
+	GLuint				m_imageFBO;
 	GLuint				m_offscreenTexture;
+	GLuint				m_depthTextureID;
 
 	GLuint MVP_loc;
 

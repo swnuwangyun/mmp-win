@@ -91,11 +91,12 @@ void YYMMDImpl::setModelPath(const char* modePath, const char* motionPath, const
 		modelFolderPath = modePathTemp.substr(0, index);
 	}
 
-	QcCriticalLock lock(m_pmxvmdlock);
-
-	resetPmxVmd();
-	m_pmxInfo = &readPMX(modelFolderPath, modelFilePath);
-	m_vmdInfo = &readVMD(motionPath);
+	{
+		QcCriticalLock lock(m_pmxvmdlock);
+		resetPmxVmd();
+		m_pmxInfo = &readPMX(modelFolderPath, modelFilePath);
+		m_vmdInfo = &readVMD(motionPath);
+	}
 
 	loadTextures();
 	initBuffers();
@@ -103,7 +104,6 @@ void YYMMDImpl::setModelPath(const char* modePath, const char* motionPath, const
 	glUseProgram(m_shaderProgram);
 
 	initUniformVarLocations();
-
 	MVP_loc = glGetUniformLocation(m_shaderProgram, "MVP");
 
 	//Set OpenGL render settings
@@ -130,7 +130,7 @@ void YYMMDImpl::setModelPath(const char* modePath, const char* motionPath, const
 	m_modelTranslate = glm::vec3(0.0f, -10.0f, 0.0f);
 }
 
-void YYMMDImpl::run()
+void YYMMDImpl::render()
 {
 	QcAutoCriticalLock lock(m_pmxvmdlock);
 	if (m_motionController && !m_motionController->advanceTime())
@@ -141,8 +141,8 @@ void YYMMDImpl::run()
 
 	if (m_mmdPhysics)
 		m_mmdPhysics->updateBones(true);
-	
-	if(m_motionController)
+
+	if (m_motionController)
 		m_motionController->updateBoneMatrix(); // 必须
 
 	if (m_bulletPhysics)
@@ -160,8 +160,22 @@ void YYMMDImpl::setBoneData(const float* data)
 		m_motionController->setBoneData(data);
 }
 
-void YYMMDImpl::copyOfTexture(MMD_Texture* dst)
+void YYMMDImpl::copyOfTextureData(char* dst)
 {
+	glBindFramebuffer(GL_FRAMEBUFFER, m_imageFBO);
+	unsigned char* dstData = new unsigned char[TEXTURE_WIDTH * TEXTURE_HEIGHT * 4];
+	glReadBuffer(GL_COLOR_ATTACHMENT0);
+	glReadPixels(0, 0, TEXTURE_WIDTH, TEXTURE_HEIGHT, GL_RGBA, GL_UNSIGNED_BYTE, dstData);
+	memcpy_s((void*)dst, TEXTURE_WIDTH *TEXTURE_HEIGHT * 4, (void*)dstData, TEXTURE_WIDTH *TEXTURE_HEIGHT * 4);
+	/*int save_result = SOIL_save_image
+	(
+	"opengltest1.png",
+	SOIL_SAVE_TYPE_BMP,
+	TEXTURE_WIDTH, TEXTURE_HEIGHT, 4,
+	dstData
+	);*/
+	SOIL_free_image_data(dstData);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 void YYMMDImpl::setLogPath(const char* logPath)
@@ -170,6 +184,32 @@ void YYMMDImpl::setLogPath(const char* logPath)
 
 bool YYMMDImpl::unInit()
 {
+	if (m_pmxInfo)
+	{
+		delete m_pmxInfo;
+		m_pmxInfo = NULL;
+	}
+	if (m_vmdInfo)
+	{
+		delete m_vmdInfo;
+		m_vmdInfo = NULL;
+	}
+	if (m_motionController)
+	{
+		delete m_motionController;
+		m_motionController = NULL;
+	}
+	if (m_bulletPhysics)
+	{
+		delete m_bulletPhysics;
+		m_bulletPhysics = NULL;
+	}
+	if (m_mmdPhysics)
+	{
+		delete m_mmdPhysics;
+		m_mmdPhysics = NULL;
+	}
+	glDeleteFramebuffers(1, &m_imageFBO);
 	return true;
 }
 
@@ -184,7 +224,6 @@ void YYMMDImpl::resetPmxVmd()
 	delete m_mmdPhysics;
 	m_mmdPhysics = NULL;
 }
-
 
 void YYMMDImpl::hackShaderFiles()
 {
@@ -262,27 +301,62 @@ void YYMMDImpl::hackShaderFiles()
 
 void YYMMDImpl::createOffscreenRendering()
 {
-	// 创建Offscreen texture与Framebuffer
-	int dst_w = 1280;
-	int dst_h = 720;
+	// 创建FBO对象
+	glGenFramebuffersEXT(1, &m_imageFBO);
+	// 启用FBO
+	glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, m_imageFBO);
 
-	// create texture2D
-	glCreateTextures(GL_TEXTURE_2D, 1, &m_offscreenTexture);
-	glTextureStorage2D(m_offscreenTexture, 0, GL_RGBA8, dst_w, dst_h);
+	// 创建纹理
+	glGenTextures(1, &m_offscreenTexture);
+	// 启用纹理
+	glBindTexture(GL_TEXTURE_2D, m_imageFBO);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, TEXTURE_WIDTH, TEXTURE_HEIGHT, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, m_imageFBO, 0);
 
-	GLuint framebuf;
-	glCreateFramebuffers(1, &framebuf);
+	glGenRenderbuffersEXT(1, &m_depthTextureID);
+	glBindRenderbufferEXT(GL_RENDERBUFFER_EXT,m_depthTextureID);
+	glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, GL_DEPTH_COMPONENT, TEXTURE_WIDTH, TEXTURE_HEIGHT);
+	glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT, GL_RENDERBUFFER_EXT, m_depthTextureID);
 
-	// bind texture to Framebuffer
-	glNamedFramebufferTexture1DEXT(framebuf, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_offscreenTexture, 0);
+	glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
 
-	// 渲染到Offscreen texture上
-	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, framebuf);
-	// viewport设置成与texture大小一致
-	glViewport(0, 0, dst_w, dst_h);
+	GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+	switch (status)
+	{
+	case GL_FRAMEBUFFER_COMPLETE:
+		std::cout << "Framebuffer complete." << std::endl;
+		return;
 
-	// 重新将窗口默认Framebuffer激活
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	case GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT:
+		std::cout << "[ERROR] Framebuffer incomplete: Attachment is NOT complete." << std::endl;
+		return;
+
+
+	case GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT:
+		std::cout << "[ERROR] Framebuffer incomplete: No image is attached to FBO." << std::endl;
+		return;
+
+	case GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER:
+		std::cout << "[ERROR] Framebuffer incomplete: Draw buffer." << std::endl;
+		return;
+
+
+	case GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER:
+		std::cout << "[ERROR] Framebuffer incomplete: Read buffer." << std::endl;
+		return;
+
+	case GL_FRAMEBUFFER_UNSUPPORTED:
+		std::cout << "[ERROR] Framebuffer incomplete: Unsupported by FBO implementation." << std::endl;
+		return;
+
+	default:
+		std::cout << "[ERROR] Framebuffer incomplete: Unknown error." << std::endl;
+		return;
+	}
 }
 
 void YYMMDImpl::loadTextures()
