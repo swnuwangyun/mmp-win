@@ -15,7 +15,6 @@
 #include "viewer.h"
 
 #include "libtext.h"
-#include "opengltest.h"
 
 using namespace std;
 
@@ -43,9 +42,6 @@ void printVersionInfo()
 
 int main(int argc, char** argv)
 {
-	OpenGLTest::GetInstance()->init();
-	return 0;
-
 	string model_file="";
 	string motion_file="";
 	string music_file="";

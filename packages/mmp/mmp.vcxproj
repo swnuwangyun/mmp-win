@@ -178,7 +178,6 @@ xcopy "..\..\3rd\libiconv-1.9.2-1-bin\bin\libiconv2.dll" $(OutDir) /s /h /d /y</
     <ClInclude Include="libmmp\glm_helper.h" />
     <ClInclude Include="libpath.h" />
     <ClInclude Include="libtext.h" />
-    <ClInclude Include="opengltest.h" />
     <ClInclude Include="pmxvLogger.h" />
     <ClInclude Include="sound.h" />
     <ClInclude Include="stdafx.h" />
@@ -203,7 +202,6 @@ xcopy "..\..\3rd\libiconv-1.9.2-1-bin\bin\libiconv2.dll" $(OutDir) /s /h /d /y</
     <ClCompile Include="libpath.cpp" />
     <ClCompile Include="libtext.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="opengltest.cpp" />
     <ClCompile Include="pmxvLogger.cpp" />
     <ClCompile Include="sound.cpp" />
     <ClCompile Include="stdafx.cpp" />
