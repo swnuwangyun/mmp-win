@@ -1,4 +1,4 @@
-#include "motioncontroller.h"
+﻿#include "motioncontroller.h"
 
 #include "interpolation.h"
 #include "glm_helper.h"
@@ -192,7 +192,27 @@ void VMDMotionController::updateVertexMorphs()
 			}
 			
 			//cout<<ipolValue<<endl;
-			
+
+			//模拟数据触发眨眼的表情，就是调节权重从0到1不断的变化
+			if (morph->wname == L"まばたき") //眨眼
+			{
+				static float factor = 0.0f;
+				factor += 0.05f;
+				if (factor > 1.0f)
+					factor = 0.0f;
+				vMorphWeights[i] = factor;
+			}
+
+			//模拟数据触发愤怒的表情，就是调节权重从0到1不断的变化
+			//if (morph->wname == L"怒り") //愤怒
+			//{
+			//	static float factor = 0.0f;
+			//	factor += 0.05f;
+			//	if (factor > 10.0f)
+			//		factor = 0.0f;
+			//	vMorphWeights[i] = factor;
+			//}
+
 			for(int j=0; j<morph->morphOffsetNum; ++j)
 			{
 				PMXVertexMorph *vMorph=(PMXVertexMorph*) morph->offsetData[j];
