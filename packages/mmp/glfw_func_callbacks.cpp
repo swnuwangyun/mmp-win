@@ -7,7 +7,7 @@
 //Spherical coordinate system (http://en.wikipedia.org/wiki/Spherical_coordinate_system)
 float theta=3.0f*M_PI/2.0f;
 float zenith=0.0;
-float radius=10.0f;
+float radius=25.0f;
 float t=radius; //distances to center after rotating up/down
 
 float theta2=0.0f;
