@@ -49,7 +49,7 @@ public:
 	virtual void setModelPath(const char* modePath, const char* motionPath, const char* musicPath);
 	virtual void render();
 	virtual void setBoneData(const float* data);
-	virtual void copyOfTextureData(char* dst);
+	virtual void copyOfTextureData(unsigned char* dst);
 	virtual void setLogPath(const char* logPath);
 	virtual bool unInit();
 
@@ -62,6 +62,8 @@ private:
 	void initUniformVarLocations();
 	void setCamera(GLuint MVPLoc);
 	std::string hackShaderFile(std::string filename);
+	void drawModel(bool drawEdges);
+	void renderModel();
 
 private:
 	ClosedMMDFormat::PMXInfo* m_pmxInfo;

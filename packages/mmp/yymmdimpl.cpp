@@ -113,6 +113,7 @@ void YYMMDImpl::setModelPath(const char* modePath, const char* motionPath, const
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glPointSize(5.0);
 	glClearColor(1, 1, 1, 1);
+	
 
 	//Setup MotionController, Physics
 	glBindBuffer(GL_ARRAY_BUFFER, Buffers[VertexArrayBuffer]);
@@ -133,6 +134,11 @@ void YYMMDImpl::setModelPath(const char* modePath, const char* motionPath, const
 void YYMMDImpl::render()
 {
 	QcAutoCriticalLock lock(m_pmxvmdlock);
+
+	glBindFramebuffer(GL_FRAMEBUFFER, m_imageFBO);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // We're not using stencil buffer now
+	glEnable(GL_DEPTH_TEST);
+
 	if (m_motionController && !m_motionController->advanceTime())
 	{
 		m_motionController->updateVertexMorphs();
@@ -152,6 +158,9 @@ void YYMMDImpl::render()
 		glUseProgram(m_shaderProgram);
 		setCamera(MVP_loc);
 	}
+
+	renderModel();
+	glfwSwapBuffers();
 }
 
 void YYMMDImpl::setBoneData(const float* data)
@@ -160,10 +169,10 @@ void YYMMDImpl::setBoneData(const float* data)
 		m_motionController->setBoneData(data);
 }
 
-void YYMMDImpl::copyOfTextureData(char* dst)
+void YYMMDImpl::copyOfTextureData(unsigned char* dst)
 {
-	glBindFramebuffer(GL_FRAMEBUFFER, m_imageFBO);
 	unsigned char* dstData = new unsigned char[TEXTURE_WIDTH * TEXTURE_HEIGHT * 4];
+	memset(dstData, 0, TEXTURE_WIDTH * TEXTURE_HEIGHT * 4);
 	glReadBuffer(GL_COLOR_ATTACHMENT0);
 	glReadPixels(0, 0, TEXTURE_WIDTH, TEXTURE_HEIGHT, GL_RGBA, GL_UNSIGNED_BYTE, dstData);
 	memcpy_s((void*)dst, TEXTURE_WIDTH *TEXTURE_HEIGHT * 4, (void*)dstData, TEXTURE_WIDTH *TEXTURE_HEIGHT * 4);
@@ -309,20 +318,28 @@ void YYMMDImpl::createOffscreenRendering()
 	// 创建纹理
 	glGenTextures(1, &m_offscreenTexture);
 	// 启用纹理
-	glBindTexture(GL_TEXTURE_2D, m_imageFBO);
+	glBindTexture(GL_TEXTURE_2D, m_offscreenTexture);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, TEXTURE_WIDTH, TEXTURE_HEIGHT, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, m_imageFBO, 0);
+	glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, m_offscreenTexture, 0);
 
 	glGenRenderbuffersEXT(1, &m_depthTextureID);
-	glBindRenderbufferEXT(GL_RENDERBUFFER_EXT,m_depthTextureID);
+	glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, m_depthTextureID);
 	glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, GL_DEPTH_COMPONENT, TEXTURE_WIDTH, TEXTURE_HEIGHT);
 	glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT, GL_RENDERBUFFER_EXT, m_depthTextureID);
-
 	glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
+
+	glDisable(GL_CULL_FACE);
+	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glPointSize(5.0);
+	glClearColor(1, 1, 1, 1);
+
+	glViewport(0, 0, TEXTURE_WIDTH, TEXTURE_HEIGHT);
 
 	GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
 	switch (status)
@@ -435,7 +452,7 @@ void YYMMDImpl::loadTextures()
 
 			FreeImage_Unload(bitmap);
 
-			textures.push_back(texture);
+			m_textures.push_back(texture);
 
 			cout<<"done"<<endl;*/
 
@@ -536,8 +553,8 @@ void YYMMDImpl::loadTextures()
 			//exit(EXIT_FAILURE);
 
 			loc.str(std::string()); //clear ss
-			if (i != 10) loc << DATA_PATH << "/textures/toon0" << i << ".bmp";
-			else loc << DATA_PATH << "/textures/toon10.bmp";
+			if (i != 10) loc << DATA_PATH << "/m_textures/toon0" << i << ".bmp";
+			else loc << DATA_PATH << "/m_textures/toon10.bmp";
 
 			ifstream test2(loc.str());
 			if (!test2.is_open())
@@ -704,4 +721,119 @@ std::string YYMMDImpl::hackShaderFile(std::string filename)
 	}
 
 	return tmpFilePath;
+}
+
+void YYMMDImpl::drawModel(bool drawEdges)
+{
+	//Bind VAO and related Buffers
+	glBindVertexArray(VAOs[Vertices]);
+	glBindBuffer(GL_ARRAY_BUFFER, Buffers[VertexArrayBuffer]);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, Buffers[VertexIndexBuffer]);
+
+	if (drawEdges)
+	{
+		glDisable(GL_BLEND);
+		glCullFace(GL_FRONT);
+		glUniform1i(uniformVars[uIsEdge], 1);
+
+		glDisable(GL_DEPTH_TEST);
+	}
+	else
+	{
+		glEnable(GL_BLEND);
+		glCullFace(GL_BACK);
+		glUniform1i(uniformVars[uIsEdge], 0);
+
+		glEnable(GL_DEPTH_TEST);
+		glDepthFunc(GL_LEQUAL);
+		glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_SRC_ALPHA, GL_DST_ALPHA);
+	}
+
+
+	glm::vec3 halfVector = glm::normalize(cameraPosition - cameraTarget);
+	halfVector.z = -halfVector.z;
+
+	glm::vec3 lightDirection = glm::normalize(glm::vec3(0.3, 1.0, 2.0));
+
+	int faceCount = 0;
+	for (int m = 0; m<m_pmxInfo->material_continuing_datasets; ++m) //m_pmxInfo->material_continuing_datasets
+	{
+		if (m_pmxInfo->materials[m]->textureIndex == -1)
+		{
+			cout << "Error: " << "m_pmxInfo->materials[m]->textureIndex==-1" << endl;
+		}
+		else
+		{
+			glActiveTexture(GL_TEXTURE0);
+			glBindTexture(GL_TEXTURE_2D, m_textures[m_pmxInfo->materials[m]->textureIndex]);
+			glUniform1iARB(uniformVars[uTextureSampler], 0);
+		}
+
+		if ((int)m_pmxInfo->materials[m]->sphereMode>0)
+		{
+			if (m_pmxInfo->materials[m]->sphereIndex != -1)
+			{
+				glActiveTexture(GL_TEXTURE1);
+				glEnable(GL_TEXTURE_2D);
+				glBindTexture(GL_TEXTURE_2D, m_textures[m_pmxInfo->materials[m]->sphereIndex]);
+				glUniform1iARB(uniformVars[uSphereSampler], 1);
+			}
+			else
+			{
+				cout << "Error: " << "m_pmxInfo->materials[m]->sphereIndex==-1" << endl;
+			}
+		}
+
+		if ((int)m_pmxInfo->materials[m]->shareToon == 0)
+		{
+			if (m_pmxInfo->materials[m]->toonTextureIndex != -1)
+			{
+				glActiveTexture(GL_TEXTURE2);
+				glEnable(GL_TEXTURE_2D);
+
+				glBindTexture(GL_TEXTURE_2D, m_textures[m_pmxInfo->materials[m]->toonTextureIndex]);
+				glUniform1iARB(uniformVars[uToonSampler], 2);
+			}
+			else
+			{
+				cout << "Error: " << "m_pmxInfo->materials[m]->toonTextureIndex==-1" << endl;
+			}
+		}
+		else if ((int)m_pmxInfo->materials[m]->shareToon == 1)
+		{
+			glActiveTexture(GL_TEXTURE2);
+			glEnable(GL_TEXTURE_2D);
+
+			glBindTexture(GL_TEXTURE_2D, m_textures[m_textures.size() - 11 + m_pmxInfo->materials[m]->shareToonTexture]);
+			glUniform1iARB(uniformVars[uToonSampler], 2);
+		}
+
+
+		glUniform3fv(uniformVars[uAmbient], 1, (GLfloat*)&m_pmxInfo->materials[m]->ambient);
+		glUniform4fv(uniformVars[uDiffuse], 1, (GLfloat*)&m_pmxInfo->materials[m]->diffuse);
+		glUniform3fv(uniformVars[uSpecular], 1, (GLfloat*)&m_pmxInfo->materials[m]->specular);
+
+		glUniform1f(uniformVars[uShininess], glm::normalize(m_pmxInfo->materials[m]->shininess));
+		glUniform3f(uniformVars[uHalfVector], halfVector.x, halfVector.y, halfVector.z);
+		glUniform3f(uniformVars[uLightDirection], lightDirection.x, lightDirection.y, lightDirection.z);
+
+		glUniform4fv(uniformVars[uEdgeColor], 1, (GLfloat*)&m_pmxInfo->materials[m]->edgeColor);
+		glUniform1f(uniformVars[uEdgeSize], glm::normalize(m_pmxInfo->materials[m]->edgeSize));
+
+		glUniform1f(uniformVars[uSphereMode], m_pmxInfo->materials[m]->sphereMode);
+
+		glDrawElements(GL_TRIANGLES, (m_pmxInfo->materials[m]->hasFaceNum), GL_UNSIGNED_INT, BUFFER_OFFSET(sizeof(GLuint)*faceCount));
+		faceCount += m_pmxInfo->materials[m]->hasFaceNum;
+	}
+}
+
+void YYMMDImpl::renderModel()
+{
+	drawModel(true); 
+	drawModel(false); 
+
+	glUseProgram(m_shaderProgram); //Restore shader program and buffer's to Viewer's after drawing Bullet debug
+	glBindVertexArray(VAOs[Vertices]);
+	glBindBuffer(GL_ARRAY_BUFFER, Buffers[VertexArrayBuffer]);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, Buffers[VertexIndexBuffer]);
 }
