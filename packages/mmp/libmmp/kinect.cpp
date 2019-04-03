@@ -26,6 +26,14 @@ std::map<std::wstring, KinectListItem> kinectBoneList = {
 	{ L"FootRight",{ L"×ó¤Ä¤ÞÏÈ", L"", -1 } }
 };
 
+extern std::vector<std::wstring> startJoints = {
+	L"SpineMid",
+	L"ShoulderLeft",
+	L"ShoulderRight",
+	L"HipLeft",
+	L"HipRight"
+};
+
 std::vector<std::map<std::wstring, glm::vec3>> bodyInfoList = {
 	{
 		{ L"SpineBase", glm::vec3(0.1166515, -0.05276975, 1.599339) },

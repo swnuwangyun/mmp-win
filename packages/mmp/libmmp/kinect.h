@@ -15,5 +15,8 @@ struct KinectListItem
 // Kinect中19个骨骼点和mmd中的映射关系
 extern std::map<std::wstring, KinectListItem> kinectBoneList;
 
+// 5个骨骼段，每一段都是一个单链表，没有分叉
+extern std::vector<std::wstring> startJoints;
+
 // Kinect设备模拟数据
 extern std::vector<std::map<std::wstring, glm::vec3>> bodyInfoList;
