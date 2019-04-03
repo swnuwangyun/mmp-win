@@ -1,7 +1,8 @@
-#include "motioncontroller.h"
+﻿#include "motioncontroller.h"
 
 #include "interpolation.h"
 #include "glm_helper.h"
+#include "kinect.h"
 
 #include <sstream>
 #include <iostream>
@@ -214,6 +215,9 @@ void VMDMotionController::updateVertexMorphs()
 
 void VMDMotionController::updateBoneMatrix()
 {
+	//kinectBoneList[L"SpineMid"].index = -1;
+	//odyInfoList[0][L"SpinBase"].x = 0.1;
+
 	for(unsigned i = 0; i < pmxInfo.bone_continuing_datasets; i++)
 	{
 		skinMatrix[i] = pmxInfo.bones[i]->calculateGlobalMatrix() * invBindPose[i];

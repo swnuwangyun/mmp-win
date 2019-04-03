@@ -175,6 +175,7 @@ xcopy "..\..\3rd\libiconv-1.9.2-1-bin\bin\libiconv2.dll" $(OutDir) /s /h /d /y</
   <ItemGroup>
     <ClInclude Include="glfw_func_callbacks.h" />
     <ClInclude Include="libmmp\glm_helper.h" />
+    <ClInclude Include="libmmp\kinect.h" />
     <ClInclude Include="libpath.h" />
     <ClInclude Include="libtext.h" />
     <ClInclude Include="pmxvLogger.h" />
@@ -189,6 +190,7 @@ xcopy "..\..\3rd\libiconv-1.9.2-1-bin\bin\libiconv2.dll" $(OutDir) /s /h /d /y</
     <ClCompile Include="libmmp\bulletphysics.cpp" />
     <ClCompile Include="libmmp\glm_helper.cpp" />
     <ClCompile Include="libmmp\interpolation.cpp" />
+    <ClCompile Include="libmmp\kinect.cpp" />
     <ClCompile Include="libmmp\mmdphysics.cpp" />
     <ClCompile Include="libmmp\motioncontroller.cpp" />
     <ClCompile Include="libmmp\pmx.cpp" />
