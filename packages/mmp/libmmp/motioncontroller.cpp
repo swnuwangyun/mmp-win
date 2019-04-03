@@ -236,7 +236,28 @@ void VMDMotionController::updateBoneMatrix()
 {
 	for(unsigned i = 0; i < pmxInfo.bone_continuing_datasets; i++)
 	{
-		skinMatrix[i] = pmxInfo.bones[i]->calculateGlobalMatrix() * invBindPose[i];
+		PMXBone *bone = pmxInfo.bones[i];
+		glm::mat4 globalMatrix = pmxInfo.bones[i]->calculateGlobalMatrix();
+
+		// 将关节点"頭"强制在X轴上移动，可以看出模型的头移动了，但是眼睛并没有联动
+		//if (bone->wname == L"頭")
+		//{
+		//	globalMatrix = glm::translate(globalMatrix, glm::vec3(5, 0, 0));
+		//}
+
+		// 将关节点"頭"强制在Y轴上旋转，可以看出模型的头转动了，但是眼睛并没有联动
+		if (bone->wname == L"頭")
+		{
+			float angle = 90.0f;
+			globalMatrix = glm::rotate(globalMatrix, angle, glm::vec3(0, 1, 0));
+		}
+
+		// Kinect只有25个点，只能控制mmd中的一部分点，MMD模型中总共有198个骨骼点，因此
+		// 需要根据关节点的父子关系，让其它关节点也联动起来。
+		//
+		// 看起来需要知道Kinect中每个节点的姿势即可？
+
+		skinMatrix[i] = globalMatrix * invBindPose[i];
 	}
 	glUniformMatrix4fv(Bones_loc, pmxInfo.bone_continuing_datasets, GL_FALSE, (const GLfloat*)skinMatrix);
 }
