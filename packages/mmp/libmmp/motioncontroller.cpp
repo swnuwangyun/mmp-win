@@ -30,6 +30,23 @@ VMDMotionController::VMDMotionController(PMXInfo &pmxInfo,VMDInfo &vmdInfo,GLuin
 {	
 	//***INIT BONE TRANSFORMATION VARIABLES***
 	time=0;
+
+	// 完善Kinect和mmd的骨骼映射关系
+	for (unsigned i = 0; i<pmxInfo.bone_continuing_datasets; i++)
+	{
+		PMXBone *b = pmxInfo.bones[i];
+		wstring name = b->wname;
+		for (std::map<std::wstring, KinectListItem>::iterator iter = kinectBoneList.begin(); iter != kinectBoneList.end(); iter++)
+		{
+			KinectListItem item = iter->second;
+			if (name == item.name)
+			{
+				item.index = i;
+				kinectBoneList[iter->first] = item;
+				break;
+			}
+		}
+	}
 	
 	invBindPose=new glm::mat4[pmxInfo.bone_continuing_datasets];
 	for(int i=0; i<pmxInfo.bone_continuing_datasets; ++i)
@@ -221,8 +238,105 @@ void VMDMotionController::updateBoneMatrix()
 	glUniformMatrix4fv(Bones_loc, pmxInfo.bone_continuing_datasets, GL_FALSE, (const GLfloat*)skinMatrix);
 }
 
+void VMDMotionController::simulateRotateHead()
+{
+	for (unsigned i = 0; i<pmxInfo.bone_continuing_datasets; i++)
+	{
+		PMXBone *b = pmxInfo.bones[i];
+		wstring name = b->wname;
+		for (std::map<std::wstring, KinectListItem>::iterator iter = kinectBoneList.begin(); iter != kinectBoneList.end(); iter++)
+		{
+			KinectListItem item = iter->second;
+			if (name == L"首")
+			{
+				float angle = 15;
+				b->Local = glm::rotate(b->Local, angle, glm::vec3(0, 1, 0));
+			}
+		}
+	}
+}
+
+void VMDMotionController::simulateRotateWholeBody()
+{
+	for (unsigned i = 0; i<pmxInfo.bone_continuing_datasets; i++)
+	{
+		PMXBone *b = pmxInfo.bones[i];
+		wstring name = b->wname;
+		for (std::map<std::wstring, KinectListItem>::iterator iter = kinectBoneList.begin(); iter != kinectBoneList.end(); iter++)
+		{
+			KinectListItem item = iter->second;
+			if (name == item.name)
+			{
+				float angle = 15;
+				b->Local = glm::rotate(b->Local, angle, glm::vec3(0, 1, 0));
+			}
+		}
+	}
+}
+
+void VMDMotionController::actualRotate(std::map<std::wstring, glm::vec3> &data)
+{
+	//for (unsigned i = 0; i<pmxInfo.bone_continuing_datasets; i++)
+	//{
+	//	PMXBone *b = pmxInfo.bones[i];
+	//	wstring name = b->wname;
+	//	for (std::map<std::wstring, KinectListItem>::iterator iter = kinectBoneList.begin(); iter != kinectBoneList.end(); iter++)
+	//	{
+	//		KinectListItem item = iter->second;
+	//		if (name == item.name)
+	//		{
+	//			//float angle = 15;
+	//			//b->Local = glm::rotate(b->Local, angle, glm::vec3(0, 1, 0));
+	//		}
+	//	}
+	//}
+
+	//for (size_t idx = 0; idx < startJoints.size(); idx++)
+	//{
+	//	wstring key = startJoints[idx];
+
+	//	while (kinectBoneList[key].child != L"")
+	//	{
+	//		PMXBone *bone = pmxInfo.bones[kinectBoneList[key].index];
+	//		PMXBone *bone_child = pmxInfo.bones[kinectBoneList[kinectBoneList[key].child].index];
+	//		glm::vec3 child = data[kinectBoneList[key].child];
+
+	//		glm::vec3 vec = child;
+	//		vec.z = -vec.z;
+	//		//bone->parent->worldToLocal(vec);
+
+	//		glm::vec3 vec2 = data[key];
+	//		vec2.z = -vec2.z;
+	//		//bone->parent->worldToLocal(vec2);
+
+	//		vec = vec - vec2;
+
+	//		glm::vec3 vecVertical;
+	//		glm::vec3 boneVector = bone_child->LocalPosition;
+
+	//		vec = glm::normalize(vec);
+	//		boneVector = glm::normalize(boneVector);
+
+	//		float r = glm::dot(boneVector, vec) + 1;
+	//		if (r < 0.000001) {
+	//			r = 0;
+	//		}
+	//		else {
+	//			vecVertical = glm::cross(boneVector, vec);
+	//		}
+
+	//		glm::quat quaternion(vecVertical.x, vecVertical.y, vecVertical.z, r);
+	//		quaternion = glm::normalize(quaternion);
+	//		wprintf(L"bone=%s quaternion=(%f, %f, %f, %f)\r\n", key.c_str(), quaternion.x, quaternion.y, quaternion.z, quaternion.w);
+
+	//		key = kinectBoneList[key].child;
+	//	}
+	//}
+}
+
 void VMDMotionController::applyKinectBodyInfo(std::map<std::wstring, glm::vec3> &data)
 {
+	// 初始化，遍历所有骨骼点，计算骨骼点相对于父节点的变换矩阵
 	for (unsigned i = 0; i<pmxInfo.bone_continuing_datasets; i++)
 	{
 		PMXBone *b = pmxInfo.bones[i];
@@ -231,14 +345,41 @@ void VMDMotionController::applyKinectBodyInfo(std::map<std::wstring, glm::vec3> 
 		{
 			PMXBone *parent = pmxInfo.bones[b->parentBoneIndex];
 			b->Local = glm::translate(b->position - parent->position);
+			b->LocalPosition = b->position - parent->position;
 		}
 		else
 		{
 			b->Local = glm::translate(b->position);
+			b->LocalPosition = b->position;
 		}
+	}
 
+	// 灌入Kinect姿态数据或者模拟姿态调整
+	int act = 2;
+	switch (act)
+	{
+	case 0:
+		actualRotate(data);
+		break;
+	case 1:
+		simulateRotateWholeBody();
+		break;
+	case 2:
+		simulateRotateHead();
+		break;
+	}
+
+	// 联动其它198-19个点？？？
+	updateIK();
+
+	// 计算所有骨骼点的蒙皮矩阵
+	for (unsigned i = 0; i<pmxInfo.bone_continuing_datasets; i++)
+	{
+		PMXBone *b = pmxInfo.bones[i];
 		skinMatrix[i] = b->calculateGlobalMatrix()*invBindPose[i];
 	}
+
+	// 更新到OpenGL的shader中
 	glUniformMatrix4fv(Bones_loc, pmxInfo.bone_continuing_datasets, GL_FALSE, (const GLfloat*)skinMatrix);
 }
 

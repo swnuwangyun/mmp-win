@@ -56,6 +56,9 @@ class VMDMotionController
 
 	// 将Kinect中的骨骼数据应用到模型中
 	void applyKinectBodyInfo(std::map<std::wstring, glm::vec3> &data);
+	void actualRotate(std::map<std::wstring, glm::vec3> &data);
+	void simulateRotateHead();
+	void simulateRotateWholeBody();
 
 	/*!
 	 * \if ENGLISH
