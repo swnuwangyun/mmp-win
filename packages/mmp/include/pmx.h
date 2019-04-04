@@ -191,7 +191,7 @@ namespace ClosedMMDFormat
 		std::wstring wname;
 		std::string nameEng;
 		
-		glm::vec3 position;
+		glm::vec3 position;  //在模型坐标系中的坐标
 		
 		int parentBoneIndex; //Set to -1 when unused
 		
@@ -242,13 +242,19 @@ namespace ClosedMMDFormat
 		
 		//VARIABLES I ADDED BELOW THIS POINT
 		glm::mat4 Local; //Bone Transformation Matrix relative to the bone's parent bone.
+		glm::mat4 Global;//相对坐标变换到模型坐标的变换矩阵
 		
 		PMXBone *parent;
 		
+		glm::vec3 LocalPosition; //在父节点坐标系中的坐标
+
 		glm::mat4 calculateGlobalMatrix()
 		{
-			if(parent) return parent->calculateGlobalMatrix() * Local;
-			else return Local;
+			if(parent) 
+				Global = parent->calculateGlobalMatrix() * Local;
+			else 
+				Global = Local;
+			return Global;
 		}
 	};
 

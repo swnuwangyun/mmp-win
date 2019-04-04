@@ -529,10 +529,12 @@ namespace ClosedMMDFormat
 			if(bone->parent)
 			{
 				bone->Local = glm::translate(bone->position - bone->parent->position);
+				bone->LocalPosition = bone->position - bone->parent->position;
 			}
 			else
 			{
 				bone->Local = glm::translate(bone->position);
+				bone->LocalPosition = bone->position;
 			}
 		}
 		cout<<"done."<<endl;
@@ -1143,4 +1145,5 @@ namespace ClosedMMDFormat
 		PRINT_MEMBER(jnt, Local);
 		return rOut;
 	}
+
 } //end of namespace
