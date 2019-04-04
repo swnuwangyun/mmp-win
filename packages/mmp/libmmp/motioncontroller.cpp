@@ -276,62 +276,65 @@ void VMDMotionController::simulateRotateWholeBody()
 
 void VMDMotionController::actualRotate(std::map<std::wstring, glm::vec3> &data)
 {
-	//for (unsigned i = 0; i<pmxInfo.bone_continuing_datasets; i++)
-	//{
-	//	PMXBone *b = pmxInfo.bones[i];
-	//	wstring name = b->wname;
-	//	for (std::map<std::wstring, KinectListItem>::iterator iter = kinectBoneList.begin(); iter != kinectBoneList.end(); iter++)
-	//	{
-	//		KinectListItem item = iter->second;
-	//		if (name == item.name)
-	//		{
-	//			//float angle = 15;
-	//			//b->Local = glm::rotate(b->Local, angle, glm::vec3(0, 1, 0));
-	//		}
-	//	}
-	//}
+	for (unsigned i = 0; i<pmxInfo.bone_continuing_datasets; i++)
+	{
+		PMXBone *b = pmxInfo.bones[i];
+		wstring mmdname = b->wname;
+		for (std::map<std::wstring, KinectListItem>::iterator iter = kinectBoneList.begin(); iter != kinectBoneList.end(); iter++)
+		{
+			wstring kname = iter->first;
+			KinectListItem item = iter->second;
+			if (mmdname == item.name)
+			{
+				wprintf(L"---bone=%s\r\n", kname.c_str());
 
-	//for (size_t idx = 0; idx < startJoints.size(); idx++)
-	//{
-	//	wstring key = startJoints[idx];
+				PMXBone *bone = pmxInfo.bones[kinectBoneList[kname].index];
+				PMXBone *bone_child = pmxInfo.bones[kinectBoneList[kinectBoneList[kname].child].index];
 
-	//	while (kinectBoneList[key].child != L"")
-	//	{
-	//		PMXBone *bone = pmxInfo.bones[kinectBoneList[key].index];
-	//		PMXBone *bone_child = pmxInfo.bones[kinectBoneList[kinectBoneList[key].child].index];
-	//		glm::vec3 child = data[kinectBoneList[key].child];
+				glm::vec3 pos = data[kname];
+				glm::vec3 pos_child = data[kinectBoneList[kname].child];
+				
+				glm::vec3 vec = pos_child;
+				vec.z = -vec.z;
+				//bone->parent->worldToLocal(vec);
 
-	//		glm::vec3 vec = child;
-	//		vec.z = -vec.z;
-	//		//bone->parent->worldToLocal(vec);
+				glm::vec3 vec2 = pos;
+				vec2.z = -vec2.z;
+				//bone->parent->worldToLocal(vec2);
 
-	//		glm::vec3 vec2 = data[key];
-	//		vec2.z = -vec2.z;
-	//		//bone->parent->worldToLocal(vec2);
+				vec = vec - vec2;
 
-	//		vec = vec - vec2;
+				glm::vec3 vecVertical;
+				glm::vec3 boneVector = bone_child->LocalPosition;
 
-	//		glm::vec3 vecVertical;
-	//		glm::vec3 boneVector = bone_child->LocalPosition;
+				vec = glm::normalize(vec);
+				boneVector = glm::normalize(boneVector);
 
-	//		vec = glm::normalize(vec);
-	//		boneVector = glm::normalize(boneVector);
+				float r = glm::dot(boneVector, vec) + 1;
+				if (r < 0.000001) {
+					r = 0;
+				}
+				else {
+					vecVertical = glm::cross(boneVector, vec);
+				}
 
-	//		float r = glm::dot(boneVector, vec) + 1;
-	//		if (r < 0.000001) {
-	//			r = 0;
-	//		}
-	//		else {
-	//			vecVertical = glm::cross(boneVector, vec);
-	//		}
+				glm::quat quaternion(vecVertical.x, vecVertical.y, vecVertical.z, r);
+				quaternion = glm::normalize(quaternion);
+				wprintf(L"bone=%s quaternion=(%f, %f, %f, %f)\r\n", kname.c_str(), quaternion.x, quaternion.y, quaternion.z, quaternion.w);
 
-	//		glm::quat quaternion(vecVertical.x, vecVertical.y, vecVertical.z, r);
-	//		quaternion = glm::normalize(quaternion);
-	//		wprintf(L"bone=%s quaternion=(%f, %f, %f, %f)\r\n", key.c_str(), quaternion.x, quaternion.y, quaternion.z, quaternion.w);
+				const glm::vec3 aa = boneVector;
+				const glm::vec3 bb = vec; 
+				glm::vec3 v = glm::cross(bb, aa);
+				float angle = acos(glm::dot(bb, aa) / (glm::length(bb) * glm::length(aa)));
+				glm::mat4 rotmat = glm::rotate(angle, v);
 
-	//		key = kinectBoneList[key].child;
-	//	}
-	//}
+				b->Local = b->Local * rotmat;
+
+				//b->Local = b->Local * glm::toMat4(quaternion);
+
+			}
+		}
+	}
 }
 
 void VMDMotionController::applyKinectBodyInfo(std::map<std::wstring, glm::vec3> &data)
@@ -355,7 +358,7 @@ void VMDMotionController::applyKinectBodyInfo(std::map<std::wstring, glm::vec3> 
 	}
 
 	// 灌入Kinect姿态数据或者模拟姿态调整
-	int act = 2;
+	int act = 0;
 	switch (act)
 	{
 	case 0:

@@ -153,6 +153,7 @@ void Viewer::handleLogic()
 		static int idx = 0;
 		std::map<std::wstring, glm::vec3> data = bodyInfoList[idx];
 		motionController->applyKinectBodyInfo(data);
+		idx = (idx + 1) % bodyInfoList.size();
 #endif
 		glUseProgram(bulletPhysics->debugDrawer->shaderProgram);
 		setCamera(bulletPhysics->debugDrawer->MVPLoc);
