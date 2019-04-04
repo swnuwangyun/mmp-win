@@ -5,7 +5,7 @@ VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "mmp", "..\packages\mmp\mmp.vcxproj", "{8B0CF6D9-ACFD-4D20-A56C-ECD8913354EC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HelperApp", "HelperApp\HelperApp.csproj", "{E75C2570-9E41-4782-965F-9F0B39F501F4}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HelperApp", "..\packages\HelperApp\HelperApp.csproj", "{E75C2570-9E41-4782-965F-9F0B39F501F4}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
