@@ -2,7 +2,6 @@
 
 #include "interpolation.h"
 #include "glm_helper.h"
-#include "kinect.h"
 
 #include <sstream>
 #include <iostream>
@@ -215,12 +214,30 @@ void VMDMotionController::updateVertexMorphs()
 
 void VMDMotionController::updateBoneMatrix()
 {
-	//kinectBoneList[L"SpineMid"].index = -1;
-	//odyInfoList[0][L"SpinBase"].x = 0.1;
-
 	for(unsigned i = 0; i < pmxInfo.bone_continuing_datasets; i++)
 	{
 		skinMatrix[i] = pmxInfo.bones[i]->calculateGlobalMatrix() * invBindPose[i];
+	}
+	glUniformMatrix4fv(Bones_loc, pmxInfo.bone_continuing_datasets, GL_FALSE, (const GLfloat*)skinMatrix);
+}
+
+void VMDMotionController::applyKinectBodyInfo(std::map<std::wstring, glm::vec3> &data)
+{
+	for (unsigned i = 0; i<pmxInfo.bone_continuing_datasets; i++)
+	{
+		PMXBone *b = pmxInfo.bones[i];
+
+		if (b->parentBoneIndex != -1)
+		{
+			PMXBone *parent = pmxInfo.bones[b->parentBoneIndex];
+			b->Local = glm::translate(b->position - parent->position);
+		}
+		else
+		{
+			b->Local = glm::translate(b->position);
+		}
+
+		skinMatrix[i] = b->calculateGlobalMatrix()*invBindPose[i];
 	}
 	glUniformMatrix4fv(Bones_loc, pmxInfo.bone_continuing_datasets, GL_FALSE, (const GLfloat*)skinMatrix);
 }

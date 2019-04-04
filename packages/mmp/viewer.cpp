@@ -138,6 +138,7 @@ void Viewer::handleLogic()
 	
 	//if(glfwGetKey('A')==GLFW_RELEASE)
 	{
+#if 0
 		if (!motionController->advanceTime())
 		{
 			motionController->updateVertexMorphs();
@@ -148,7 +149,11 @@ void Viewer::handleLogic()
 		
 		mmdPhysics->updateBones(doPhysics);
 		motionController->updateBoneMatrix();
-		
+#else
+		static int idx = 0;
+		std::map<std::wstring, glm::vec3> data = bodyInfoList[idx];
+		motionController->applyKinectBodyInfo(data);
+#endif
 		glUseProgram(bulletPhysics->debugDrawer->shaderProgram);
 		setCamera(bulletPhysics->debugDrawer->MVPLoc);
 		glUseProgram(shaderProgram);

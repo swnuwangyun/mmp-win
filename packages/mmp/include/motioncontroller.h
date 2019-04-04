@@ -1,4 +1,4 @@
-#ifndef MOTION_CONTROLLER_H
+﻿#ifndef MOTION_CONTROLLER_H
 #define MOTION_CONTROLLER_H
 
 #include <GL/glew.h>
@@ -7,6 +7,7 @@
 
 #include "pmx.h"
 #include "vmd.h"
+#include "kinect.h"
 
 #include <list>
 #include <sstream>
@@ -52,6 +53,10 @@ class VMDMotionController
 										//!< \if JAPANESE \brief Uniform変数「Bones」をモデルのボーン変形行列の配列で更新する為の関数。 \endif
 	void updateBoneAnimation();			//!< \if ENGLISH \brief A function used to update the model's bone transformation matrices with the current frame of animation. \endif
 										//!< \if JAPANESE \brief モデルのボーン変形行列の配列を更新する為の関数。 \endif
+
+	// 将Kinect中的骨骼数据应用到模型中
+	void applyKinectBodyInfo(std::map<std::wstring, glm::vec3> &data);
+
 	/*!
 	 * \if ENGLISH
 	 * \brief A function used to move on to the next frame in the animation.
