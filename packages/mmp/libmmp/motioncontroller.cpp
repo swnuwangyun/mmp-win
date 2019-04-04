@@ -310,6 +310,7 @@ void VMDMotionController::actualRotate(std::map<std::wstring, glm::vec3> &data)
 				vec = glm::normalize(vec);
 				boneVector = glm::normalize(boneVector);
 
+#if 0
 				float r = glm::dot(boneVector, vec) + 1;
 				if (r < 0.000001) {
 					r = 0;
@@ -317,23 +318,13 @@ void VMDMotionController::actualRotate(std::map<std::wstring, glm::vec3> &data)
 				else {
 					vecVertical = glm::cross(boneVector, vec);
 				}
-
 				glm::quat quaternion(vecVertical.x, vecVertical.y, vecVertical.z, r);
 				quaternion = glm::normalize(quaternion);
+#else
+				glm::quat quaternion = glm::rotation(boneVector, vec);
+#endif
 				wprintf(L"bone=%s quaternion=(%f, %f, %f, %f)\r\n", kname.c_str(), quaternion.x, quaternion.y, quaternion.z, quaternion.w);
-
-				const glm::vec3 aa = boneVector;
-				const glm::vec3 bb = vec; 
-				glm::vec3 v = glm::cross(bb, aa);
-				float angle = acos(glm::dot(bb, aa) / (glm::length(bb) * glm::length(aa)));
-				glm::mat4 rotmat = glm::rotate(angle, v);
-
-				//rotmat = glm::rotation
-
-				b->Local = b->Local * rotmat;
-
-				//b->Local = b->Local * glm::toMat4(quaternion);
-
+				b->Local = b->Local * glm::toMat4(quaternion);
 			}
 		}
 	}

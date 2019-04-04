@@ -138,7 +138,7 @@ void Viewer::handleLogic()
 	
 	//if(glfwGetKey('A')==GLFW_RELEASE)
 	{
-#if 1
+#if 0
 		if (!motionController->advanceTime())
 		{
 			motionController->updateVertexMorphs();
