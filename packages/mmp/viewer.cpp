@@ -138,7 +138,7 @@ void Viewer::handleLogic()
 	
 	//if(glfwGetKey('A')==GLFW_RELEASE)
 	{
-#if 0
+#if 1
 		if (!motionController->advanceTime())
 		{
 			motionController->updateVertexMorphs();
@@ -262,7 +262,7 @@ void Viewer::setCamera(GLuint MVPLoc)
 
 	// MODEL SPACE ==> WORLD SPACE
 	// 模型变换矩阵 : an identity matrix (model will be at the origin)
-	glm::mat4 Model = glm::translate(modelTranslate.x, modelTranslate.y, modelTranslate.z);
+	glm::mat4 Model = glm::translate(glm::vec3(modelTranslate.x, modelTranslate.y, modelTranslate.z));
 
 	// MVP一步到位，从MODEL SPACE变换到CLIP SPACE坐标系
 	// Our ModelViewProjection : multiplication of our 3 matrices

@@ -89,7 +89,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>..\..\3rd\libiconv-1.9.2-1-lib\include;..\..\3rd\Simple OpenGL Image Library\src;..\..\3rd\SDL2-2.0.9\include;..\..\3rd\SDL2_mixer-2.0.4\include;..\..\3rd\bullet3-2.82\src;..\..\3rd\glfw-2.7.9\include;..\..\3rd\glew-1.11.0\include;..\..\3rd\glm-0.9.4.6\glm;include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\3rd\libiconv-1.9.2-1-lib\include;..\..\3rd\Simple OpenGL Image Library\src;..\..\3rd\SDL2-2.0.9\include;..\..\3rd\SDL2_mixer-2.0.4\include;..\..\3rd\bullet3-2.82\src;..\..\3rd\glfw-2.7.9\include;..\..\3rd\glew-1.11.0\include;..\..\3rd\glm-0.9.5.0\glm;include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>

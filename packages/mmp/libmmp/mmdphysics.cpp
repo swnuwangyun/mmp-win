@@ -262,7 +262,7 @@ void MMDPhysics::updateBones(bool physicsEnabled)
 			else if (pmxInfo.rigidBodies[i_rb]->physicsOperation == RIGID_TYPE_PHYSICS_ROT_ONLY)
 			{
 				const glm::quat rotation(rb_local);
-				bone->Local = glm::translate(bone->Local[3][0], bone->Local[3][1], bone->Local[3][2]) * glm::toMat4(rotation);
+				bone->Local = glm::translate(glm::vec3(bone->Local[3][0], bone->Local[3][1], bone->Local[3][2])) * glm::toMat4(rotation);
 			}
 		}
 	}

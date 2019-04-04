@@ -328,6 +328,8 @@ void VMDMotionController::actualRotate(std::map<std::wstring, glm::vec3> &data)
 				float angle = acos(glm::dot(bb, aa) / (glm::length(bb) * glm::length(aa)));
 				glm::mat4 rotmat = glm::rotate(angle, v);
 
+				//rotmat = glm::rotation
+
 				b->Local = b->Local * rotmat;
 
 				//b->Local = b->Local * glm::toMat4(quaternion);
@@ -541,7 +543,7 @@ void VMDMotionController::updateIK()
 						const glm::vec3 desired_euler = glm::radians(glm::eulerAngles(desired_rotation));
 						const glm::vec3 clamped_euler = glm::clamp(desired_euler, IKLink->lowerLimit, IKLink->upperLimit);
 						const glm::quat clamped_rotation(clamped_euler);
-						const glm::mat4 translation = glm::translate(linkBone->Local[3][0], linkBone->Local[3][1], linkBone->Local[3][2]);
+						const glm::mat4 translation = glm::translate(glm::vec3(linkBone->Local[3][0], linkBone->Local[3][1], linkBone->Local[3][2]));
 						linkBone->Local = translation * glm::toMat4(clamped_rotation);
 					}
 					else
