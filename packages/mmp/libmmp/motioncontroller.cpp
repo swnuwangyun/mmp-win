@@ -246,7 +246,7 @@ void VMDMotionController::simulateRotateHead()
 		wstring name = b->wname;
 		for (std::map<std::wstring, KinectListItem>::iterator iter = kinectBoneList.begin(); iter != kinectBoneList.end(); iter++)
 		{
-			KinectListItem item = iter->second;
+			KinectListItem &item = iter->second;
 			if (name == L"首")
 			{
 				float angle = 15;
@@ -264,7 +264,7 @@ void VMDMotionController::simulateRotateWholeBody()
 		wstring name = b->wname;
 		for (std::map<std::wstring, KinectListItem>::iterator iter = kinectBoneList.begin(); iter != kinectBoneList.end(); iter++)
 		{
-			KinectListItem item = iter->second;
+			KinectListItem &item = iter->second;
 			if (name == item.name)
 			{
 				float angle = 15;
@@ -282,15 +282,15 @@ void VMDMotionController::actualRotate(std::map<std::wstring, glm::vec3> &data)
 		wstring mmdname = b->wname;
 		for (std::map<std::wstring, KinectListItem>::iterator iter = kinectBoneList.begin(); iter != kinectBoneList.end(); iter++)
 		{
-			wstring kname = iter->first;
-			KinectListItem item = iter->second;
+			const wstring &kname = iter->first;
+			KinectListItem &item = iter->second;
 			if (mmdname == item.name)
 			{
 				// 一段骨骼由2个关节点组成，因此需要判断item.child是否为空，空表示肢体的末端关节点，就无须下述处理了
 				if (item.child != L"")
 				{
 					// 拿到mmd中关节点和子关节点结构体
-					PMXBone *bone = pmxInfo.bones[kinectBoneList[kname].index];
+					PMXBone *bone = pmxInfo.bones[item.index];
 					PMXBone *bone_child = pmxInfo.bones[kinectBoneList[kinectBoneList[kname].child].index];
 
 					// Kinect关节点和子关节点在【世界空间】中的坐标
@@ -321,7 +321,6 @@ void VMDMotionController::actualRotate(std::map<std::wstring, glm::vec3> &data)
 					glm::quat quaternion = glm::rotation(boneVector, kboneVector);
 
 					// 更新mmd关节点在【mmd父关节点坐标系】中的变换矩阵
-					wprintf(L"bone=%s quaternion=(%f, %f, %f, %f)\r\n", kname.c_str(), quaternion.x, quaternion.y, quaternion.z, quaternion.w);
 					b->Local = b->Local * glm::toMat4(quaternion);
 				}
 			}
