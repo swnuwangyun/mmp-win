@@ -291,7 +291,7 @@ void VMDMotionController::actualRotate(std::map<std::wstring, glm::vec3> &data)
 				{
 					// 拿到mmd中关节点和子关节点结构体
 					PMXBone *bone = pmxInfo.bones[item.index];
-					PMXBone *bone_child = pmxInfo.bones[kinectBoneList[kinectBoneList[kname].child].index];
+					PMXBone *bone_child = pmxInfo.bones[kinectBoneList[item.child].index];
 
 					// Kinect关节点和子关节点在【世界空间】中的坐标
 					glm::vec3 pos = data[kname];
