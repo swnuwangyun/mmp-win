@@ -238,23 +238,39 @@ namespace ClosedMMDFormat
 		
 		unsigned IKLinkNum; //Number of continuing IK(Inverse Kinetics) elements
 		std::vector<PMXIKLink*> IKLinks;
-		
+	
 		
 		//VARIABLES I ADDED BELOW THIS POINT
 		glm::mat4 Local; //Bone Transformation Matrix relative to the bone's parent bone.
-		glm::mat4 Global;//相对坐标变换到模型坐标的变换矩阵
-		
-		PMXBone *parent;
-		
 		glm::vec3 LocalPosition; //在父节点坐标系中的坐标
 
+		PMXBone *parent;
+		
 		glm::mat4 calculateGlobalMatrix()
 		{
 			if(parent) 
-				Global = parent->calculateGlobalMatrix() * Local;
+				return parent->calculateGlobalMatrix() * Local;
 			else 
-				Global = Local;
-			return Global;
+				return Local;
+		}
+
+		glm::vec3 globalToLocal(glm::vec3 vec)
+		{
+			glm::mat4 globalMatrix = calculateGlobalMatrix();
+			glm::mat4 localMatrix = glm::inverse(globalMatrix);
+			glm::vec4 globalVector(vec, 1);
+			glm::vec4 localVector = localMatrix * globalVector;
+			glm::vec3 ret(localVector);
+			return ret;
+		}
+
+		glm::vec3 localToGlobal(glm::vec3 vec)
+		{
+			glm::mat4 globalMatrix = calculateGlobalMatrix();
+			glm::vec4 localVector(vec, 1);
+			glm::vec4 globalVector = globalMatrix * localVector;
+			glm::vec3 ret(globalVector);
+			return ret;
 		}
 	};
 

@@ -286,39 +286,41 @@ void VMDMotionController::actualRotate(std::map<std::wstring, glm::vec3> &data)
 			KinectListItem item = iter->second;
 			if (mmdname == item.name)
 			{
+				// 一段骨骼由2个关节点组成，因此需要判断item.child是否为空，空表示肢体的末端关节点，就无须下述处理了
 				if (item.child != L"")
 				{
-					// 拿到mmd中骨骼和子骨骼结构体
+					// 拿到mmd中关节点和子关节点结构体
 					PMXBone *bone = pmxInfo.bones[kinectBoneList[kname].index];
 					PMXBone *bone_child = pmxInfo.bones[kinectBoneList[kinectBoneList[kname].child].index];
 
-					// Kinect骨骼和子骨骼在世界空间中的坐标
+					// Kinect关节点和子关节点在【世界空间】中的坐标
 					glm::vec3 pos = data[kname];
 					glm::vec3 pos_child = data[kinectBoneList[kname].child];
 
-					// 分别转换到mmd骨骼父节点坐标系中
-					glm::vec3 vec = pos_child;
+					// 分别转换到【mmd父关节点坐标系】中
+					glm::vec3 vec_child = pos_child;
+					vec_child.z = -vec_child.z;
+					vec_child = bone->parent->globalToLocal(vec_child);
+
+					glm::vec3 vec = pos;
 					vec.z = -vec.z;
-					//bone->parent->worldToLocal(vec);
+					vec = bone->parent->globalToLocal(vec);
 
-					glm::vec3 vec2 = pos;
-					vec2.z = -vec2.z;
-					//bone->parent->worldToLocal(vec2);
+					// 向量减法，得到Kinect关节点，子关节点所组成的这段骨骼在【mmd父关节点坐标系】中的向量
+					glm::vec3 kboneVector = vec_child - vec;
 
-					// 向量减法，得到Kinect骨骼在mmd父骨骼坐标系中的向量
-					glm::vec3 kboneVector = vec - vec2;
-
-					// 骨骼向量，就是就是子骨骼相对于父节点的坐标
+					// mmd骨骼向量，就是就是子关节点相对于父节点的坐标，因此我们之前需要保存LocalPosition字段
 					glm::vec3 boneVector = bone_child->LocalPosition;
 
-					// 归一化
+					// 向量归一化，注意Kinect骨骼向量、mmd骨骼向量都是在同样的参考系中，即【mmd父关节点坐标系】
 					kboneVector = glm::normalize(kboneVector);
 					boneVector = glm::normalize(boneVector);
 
-					// 然后求这2个向量变换的四元数（等价于旋转矩阵，或者欧拉角）
+					// 求这2个骨骼向量变换的四元数（等价于旋转矩阵，或者欧拉角，是向量旋转变换的另外一种表示方法）
+					// 返回的四元数已经是归一化了的
 					glm::quat quaternion = glm::rotation(boneVector, kboneVector);
 
-					// 更新mmd骨骼在父骨骼空间中的变换矩阵
+					// 更新mmd关节点在【mmd父关节点坐标系】中的变换矩阵
 					wprintf(L"bone=%s quaternion=(%f, %f, %f, %f)\r\n", kname.c_str(), quaternion.x, quaternion.y, quaternion.z, quaternion.w);
 					b->Local = b->Local * glm::toMat4(quaternion);
 				}
@@ -329,7 +331,7 @@ void VMDMotionController::actualRotate(std::map<std::wstring, glm::vec3> &data)
 
 void VMDMotionController::applyKinectBodyInfo(std::map<std::wstring, glm::vec3> &data)
 {
-	// 初始化，遍历所有骨骼点，计算骨骼点相对于父节点的变换矩阵
+	// 初始化，遍历所有关节点，计算关节点相对于父关节点的变换矩阵
 	for (unsigned i = 0; i<pmxInfo.bone_continuing_datasets; i++)
 	{
 		PMXBone *b = pmxInfo.bones[i];
@@ -362,7 +364,7 @@ void VMDMotionController::applyKinectBodyInfo(std::map<std::wstring, glm::vec3> 
 		break;
 	}
 
-	// 计算所有骨骼点的蒙皮矩阵
+	// 计算所有关节点的蒙皮矩阵
 	for (unsigned i = 0; i<pmxInfo.bone_continuing_datasets; i++)
 	{
 		PMXBone *b = pmxInfo.bones[i];
