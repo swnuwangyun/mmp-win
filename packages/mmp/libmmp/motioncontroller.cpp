@@ -286,45 +286,43 @@ void VMDMotionController::actualRotate(std::map<std::wstring, glm::vec3> &data)
 			KinectListItem item = iter->second;
 			if (mmdname == item.name)
 			{
-				wprintf(L"---bone=%s\r\n", kname.c_str());
+				if (item.child != L"")
+				{
+					// 拿到mmd中骨骼和子骨骼结构体
+					PMXBone *bone = pmxInfo.bones[kinectBoneList[kname].index];
+					PMXBone *bone_child = pmxInfo.bones[kinectBoneList[kinectBoneList[kname].child].index];
 
-				PMXBone *bone = pmxInfo.bones[kinectBoneList[kname].index];
-				PMXBone *bone_child = pmxInfo.bones[kinectBoneList[kinectBoneList[kname].child].index];
+					// Kinect骨骼和子骨骼在世界空间中的坐标
+					glm::vec3 pos = data[kname];
+					glm::vec3 pos_child = data[kinectBoneList[kname].child];
 
-				glm::vec3 pos = data[kname];
-				glm::vec3 pos_child = data[kinectBoneList[kname].child];
-				
-				glm::vec3 vec = pos_child;
-				vec.z = -vec.z;
-				//bone->parent->worldToLocal(vec);
+					// 分别转换到mmd骨骼父节点坐标系中
+					glm::vec3 vec = pos_child;
+					vec.z = -vec.z;
+					//bone->parent->worldToLocal(vec);
 
-				glm::vec3 vec2 = pos;
-				vec2.z = -vec2.z;
-				//bone->parent->worldToLocal(vec2);
+					glm::vec3 vec2 = pos;
+					vec2.z = -vec2.z;
+					//bone->parent->worldToLocal(vec2);
 
-				vec = vec - vec2;
+					// 向量减法，得到Kinect骨骼在mmd父骨骼坐标系中的向量
+					vec = vec - vec2;
 
-				glm::vec3 vecVertical;
-				glm::vec3 boneVector = bone_child->LocalPosition;
+					// 骨骼向量，就是就是子骨骼相对于父节点的坐标
+					glm::vec3 vecVertical;
+					glm::vec3 boneVector = bone_child->LocalPosition;
 
-				vec = glm::normalize(vec);
-				boneVector = glm::normalize(boneVector);
+					// 归一化
+					vec = glm::normalize(vec);
+					boneVector = glm::normalize(boneVector);
 
-#if 0
-				float r = glm::dot(boneVector, vec) + 1;
-				if (r < 0.000001) {
-					r = 0;
+					// 然后求这2个向量变换的四元数（等价于旋转矩阵，或者欧拉角）
+					glm::quat quaternion = glm::rotation(boneVector, vec);
+
+					// 更新mmd骨骼在父骨骼空间中的变换矩阵
+					wprintf(L"bone=%s quaternion=(%f, %f, %f, %f)\r\n", kname.c_str(), quaternion.x, quaternion.y, quaternion.z, quaternion.w);
+					b->Local = b->Local * glm::toMat4(quaternion);
 				}
-				else {
-					vecVertical = glm::cross(boneVector, vec);
-				}
-				glm::quat quaternion(vecVertical.x, vecVertical.y, vecVertical.z, r);
-				quaternion = glm::normalize(quaternion);
-#else
-				glm::quat quaternion = glm::rotation(boneVector, vec);
-#endif
-				wprintf(L"bone=%s quaternion=(%f, %f, %f, %f)\r\n", kname.c_str(), quaternion.x, quaternion.y, quaternion.z, quaternion.w);
-				b->Local = b->Local * glm::toMat4(quaternion);
 			}
 		}
 	}
@@ -364,9 +362,6 @@ void VMDMotionController::applyKinectBodyInfo(std::map<std::wstring, glm::vec3> 
 		simulateRotateHead();
 		break;
 	}
-
-	// 联动其它198-19个点？？？
-	updateIK();
 
 	// 计算所有骨骼点的蒙皮矩阵
 	for (unsigned i = 0; i<pmxInfo.bone_continuing_datasets; i++)
