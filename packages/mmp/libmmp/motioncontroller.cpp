@@ -306,18 +306,17 @@ void VMDMotionController::actualRotate(std::map<std::wstring, glm::vec3> &data)
 					//bone->parent->worldToLocal(vec2);
 
 					// 向量减法，得到Kinect骨骼在mmd父骨骼坐标系中的向量
-					vec = vec - vec2;
+					glm::vec3 kboneVector = vec - vec2;
 
 					// 骨骼向量，就是就是子骨骼相对于父节点的坐标
-					glm::vec3 vecVertical;
 					glm::vec3 boneVector = bone_child->LocalPosition;
 
 					// 归一化
-					vec = glm::normalize(vec);
+					kboneVector = glm::normalize(kboneVector);
 					boneVector = glm::normalize(boneVector);
 
 					// 然后求这2个向量变换的四元数（等价于旋转矩阵，或者欧拉角）
-					glm::quat quaternion = glm::rotation(boneVector, vec);
+					glm::quat quaternion = glm::rotation(boneVector, kboneVector);
 
 					// 更新mmd骨骼在父骨骼空间中的变换矩阵
 					wprintf(L"bone=%s quaternion=(%f, %f, %f, %f)\r\n", kname.c_str(), quaternion.x, quaternion.y, quaternion.z, quaternion.w);
