@@ -309,7 +309,8 @@ void Viewer::drawModel(bool drawEdges)
 	{
 		if (pmxInfo->materials[m]->textureIndex == -1)
 		{
-			cout << "Error: " << "pmxInfo->materials[m]->textureIndex==-1" << endl;
+			//这里频繁打日志的话，会导致帧率严重下降
+			//cout << "Error: " << "pmxInfo->materials[m]->textureIndex==-1" << endl;
 		}
 		else
 		{
