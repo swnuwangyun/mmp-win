@@ -330,7 +330,8 @@ void Viewer::drawModel(bool drawEdges)
 			}
 			else
 			{
-				cout << "Error: " << "pmxInfo->materials[m]->sphereIndex==-1" << endl;
+				//这里频繁打日志的话，会导致帧率严重下降
+				//cout << "Error: " << "pmxInfo->materials[m]->sphereIndex==-1" << endl;
 			}
 		}
 		
@@ -346,7 +347,8 @@ void Viewer::drawModel(bool drawEdges)
 			}
 			else
 			{
-				cout << "Error: " << "pmxInfo->materials[m]->toonTextureIndex==-1" << endl;
+				//这里频繁打日志的话，会导致帧率严重下降
+				//cout << "Error: " << "pmxInfo->materials[m]->toonTextureIndex==-1" << endl;
 			}
 		}
 		else if((int)pmxInfo->materials[m]->shareToon==1)
