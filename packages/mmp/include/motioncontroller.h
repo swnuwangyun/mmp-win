@@ -59,6 +59,7 @@ class VMDMotionController
 	void actualRotate(std::map<std::wstring, glm::vec3> &data);
 	void simulateRotateHead();
 	void simulateRotateWholeBody();
+	void simulateRotateLeg();
 
 	/*!
 	 * \if ENGLISH

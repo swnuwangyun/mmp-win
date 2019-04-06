@@ -274,6 +274,26 @@ void VMDMotionController::simulateRotateWholeBody()
 	}
 }
 
+void VMDMotionController::simulateRotateLeg()
+{
+	for (unsigned i = 0; i<pmxInfo.bone_continuing_datasets; i++)
+	{
+		PMXBone *b = pmxInfo.bones[i];
+		wstring name = b->wname;
+
+		// 对于复杂的pmx模型，带IK的那种，和kinect的映射关系是不同的，细节还没有看懂
+		if (name == L"腰キャンセル右") // HipLeft
+		//if (name == L"右足D") // HipLeft? 旁边的蝴蝶结不会动？
+		//if (name==L"右ひざD") // KneeLeft
+		//if (name==L"右足首D") // AnkleLeft
+		//if (name==L"右足首D") // AnkleLeft，子节点：右足先EX
+		{
+			float angle = 15;
+			b->Local = glm::rotate(b->Local, angle, glm::vec3(1, 0, 0));
+		}
+	}
+}
+
 void VMDMotionController::actualRotate(std::map<std::wstring, glm::vec3> &data)
 {
 	for (unsigned i = 0; i<pmxInfo.bone_continuing_datasets; i++)
@@ -361,8 +381,11 @@ void VMDMotionController::applyKinectBodyInfo(std::map<std::wstring, glm::vec3> 
 	case 2:
 		simulateRotateHead();
 		break;
+	case 3:
+		simulateRotateLeg();
+		break;
 	}
-
+	
 	// 计算所有关节点的蒙皮矩阵
 	for (unsigned i = 0; i<pmxInfo.bone_continuing_datasets; i++)
 	{
