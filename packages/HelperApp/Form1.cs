@@ -22,6 +22,7 @@ namespace HelperApp
             string[] lines = this.richTextBox1.Text.Split('\n');
             int offset = 3;
 
+            string text = "";
             string code = "std::vector<std::map<std::wstring, glm::vec3>> bodyInfoList = {\r\n";
             string temp = "";
 
@@ -46,6 +47,7 @@ namespace HelperApp
                 z = items[3];
 
                 temp += string.Format("     {{ L\"{0}\", glm::vec3({1}, {2}, {3}) }},\r\n", name, x, y, z);
+                text += string.Format("{0}, {1}, {2}, {3}\r\n", name, x, y, z);
 
                 if (name=="SpineBase")
                 {
@@ -59,6 +61,7 @@ namespace HelperApp
                     code += temp;
                     code += "   },\r\n";
                     temp = "";
+                    text += "\r\n";
 
                     offset += 4;
                 }
