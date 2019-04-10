@@ -15,6 +15,8 @@
 #include "viewer.h"
 
 #include "libtext.h"
+#include "yymmdimpl.h"
+#include "SOIL.h"
 
 using namespace std;
 
@@ -71,16 +73,10 @@ int main(int argc, char** argv)
 				if(str.substr(str.size()-4)==".pmx")
 				{
 					model_file=str;
-					wstring wmodel_file = libtext::string2wstring(model_file);
-					wmodel_file = libtext::replace(wmodel_file, L"\\", L"/");
-					model_file = libtext::wstring2string(wmodel_file);
 				}
 				else if(str.substr(str.size()-4)==".vmd")
 				{
 					motion_file=str;
-					wstring wmotion_file = libtext::string2wstring(motion_file);
-					wmotion_file = libtext::replace(wmotion_file, L"\\", L"/");
-					motion_file = libtext::wstring2string(wmotion_file);
 				}
 			}
 		}
@@ -105,10 +101,12 @@ int main(int argc, char** argv)
 	}
 	cout<<"sizeinfo: "<<sizeof(VertexData)<<" "<<sizeof(GLfloat)<<" "<<sizeof(glm::vec2)<<endl;
 	
-	Viewer viewer(model_file,motion_file,music_file);
-	
-	viewer.run();
-	
+	// 若要显示glfw窗体，则setModelPath new viewer时最后一个参数传false。否则作为外界调用DLL，则需要额外初始化opengl
+	YYMMDImpl::GetInstance()->init("111");
+	YYMMDImpl::GetInstance()->setLogPath("C:\\Users\\Administrator\\AppData\\Roaming\\duowan\\yy\\log");
+	YYMMDImpl::GetInstance()->setModelPath(model_file.c_str(), ""/*motion_file.c_str()*/, music_file.c_str());
+	YYMMDImpl::GetInstance()->render();
+
 	delete pmxvLogger::get();	
 	return 0;
 }

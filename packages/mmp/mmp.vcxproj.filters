@@ -46,6 +46,9 @@
     <ClCompile Include="libtext.cpp">
       <Filter>utils</Filter>
     </ClCompile>
+    <ClCompile Include="dllmain.cpp" />
+    <ClCompile Include="yymmd.cpp" />
+    <ClCompile Include="yymmdimpl.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="glfw_func_callbacks.h" />
@@ -58,6 +61,11 @@
       <Filter>utils</Filter>
     </ClInclude>
     <ClInclude Include="libtext.h">
+      <Filter>utils</Filter>
+    </ClInclude>
+    <ClInclude Include="yymmd.h" />
+    <ClInclude Include="yymmdimpl.h" />
+    <ClInclude Include="QcCriticalLock.h">
       <Filter>utils</Filter>
     </ClInclude>
   </ItemGroup>

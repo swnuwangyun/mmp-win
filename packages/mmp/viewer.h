@@ -11,7 +11,10 @@
 #include <glm/gtx/quaternion.hpp>
 
 #include <vector>
+#include <map>
 #include <string>
+#include "IYYMMD.h"
+#include "QcCriticalLock.h"
 
 #define BUFFER_OFFSET(offset) ((void *) (offset))
 
@@ -39,14 +42,17 @@ class VertexData;
 
 class Viewer
 {
-	public:
-	Viewer(std::string modelPath, std::string motionPath, std::string musicPath="");
+public:
+	Viewer(std::string modelPath, std::string motionPath, std::string musicPath="", bool dllCall = false);
 	~Viewer();
-	
-	void run();
-		
-	
-	private:
+	void init();
+	void run();	
+	void copyOfTextureData(unsigned char* dst);
+	void setBoneAnimationFlag(bool flag);
+	void updateBoneData(const BoneData* item, const int len);
+	void unint();
+
+private:
 	void initGLFW();
 	void hackShaderFiles(); //modify #version lines in shader files to match GL version
 	void initUniformVarLocations();
@@ -63,7 +69,7 @@ class Viewer
 	
 	void drawModel(bool drawEdges);
 	
-	
+private:
 	GLuint VAOs[NumVAOs];
 	GLuint Buffers[NumBuffers];
 	GLuint uniformVars[NumUniforms];
@@ -94,6 +100,17 @@ class Viewer
 	
 	glm::vec3 modelTranslate;
 	GLfloat fov;
+
+	std::string m_motionPath;	// 控制传入mmp的运动路径，若为空，则直接用传入的bonedata,若不为空，则采用motionpath
+	bool		m_dllCall;		// 控制是否创建glfw窗口
+
+	GLuint				m_imageFBO;
+	GLuint				m_offscreenTexture;
+	GLuint				m_depthTextureID;
+
+	std::map<std::wstring, glm::vec3> m_boneDatas;
+	QcCriticalLock					  m_boneDataLock;
+	bool							  m_boneAnimationFlag;
 };
 
 

@@ -23,6 +23,7 @@
 #include "libtext.h"
 #include "libpath.h"
 
+
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
 #endif
@@ -40,8 +41,14 @@ static string __DATA_PATH()
 }
 #define DATA_PATH	__DATA_PATH()
 
-Viewer::Viewer(string modelPath, string motionPath,string musicPath)
+Viewer::Viewer(string modelPath, string motionPath,string musicPath,bool dllCall)
+	: GLVersionMajor(4)
+	, GLVersionMinor(2)
+	, m_boneAnimationFlag(false)
 {
+	log(libtext::format("modelPath = %s, motionPath = %s, musicPath = %s, dllCall = %d",
+		modelPath.c_str(), motionPath.c_str(), musicPath.c_str(), dllCall));
+
 	int index=modelPath.rfind("/");
 	string modelFilePath,modelFolderPath;
 	
@@ -57,7 +64,19 @@ Viewer::Viewer(string modelPath, string motionPath,string musicPath)
 	}
 	
 	pmxInfo=&readPMX(modelFolderPath,modelFilePath);
-	vmdInfo=&readVMD(motionPath);
+
+	if (!pmxInfo)
+	{
+		log("pmxInfo read failed null");
+		return;
+	}
+
+	if (motionPath != "")
+	{
+		vmdInfo = &readVMD(motionPath);
+	}
+	m_motionPath = motionPath;
+	m_dllCall = dllCall;
 	//pmxInfo=&readPMX("data/model/gumiv3/","GUMI_V3.pmx");
 	//vmdInfo=&readVMD("data/motion/Watashi no Jikan/私の時間_short_Lat式ミク.vmd");
 	
@@ -65,8 +84,15 @@ Viewer::Viewer(string modelPath, string motionPath,string musicPath)
 	//writeVMD(*vmdInfo,"testVMD.vmd");
 	//vmdInfo=&readVMD("testVMD.vmd");
 	
-	initGLFW();
-	
+	if (!m_dllCall)
+	{
+		initGLFW();
+	}
+	else
+	{
+		hackShaderFiles();
+		glfwSwapInterval(1);
+	}
 	
 	//NOTE: shaderProgram compilation now handled in hackShaderFiles() within initGLFW()
 	/*ifstream test("shaders/model.vert");
@@ -100,6 +126,7 @@ Viewer::Viewer(string modelPath, string motionPath,string musicPath)
 	glEnable(GL_BLEND);
 	glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glPointSize(5.0);
+	glViewport(0, 0, TEXTURE_WIDTH, TEXTURE_HEIGHT);
 	//glClearDepth(1.0f);
 	
 	//glClearColor(0.1f, 0.1f, 0.1f, 0.1f);
@@ -117,9 +144,12 @@ Viewer::Viewer(string modelPath, string motionPath,string musicPath)
 	glUseProgram(shaderProgram); //restore GL shader program binding to Viewer's shader program after initializing BulletPhysic's debugDrawer
 	mmdPhysics = new MMDPhysics(*pmxInfo,motionController,bulletPhysics);
 	
-	motionController->updateVertexMorphs();
-	motionController->updateBoneAnimation();
-	
+	if (motionPath != "")
+	{
+		motionController->updateVertexMorphs();
+		motionController->updateBoneAnimation();
+	}
+
 	//Initialize timer variables
 	startTime = glfwGetTime();
 	ticks=0;
@@ -131,14 +161,19 @@ Viewer::Viewer(string modelPath, string motionPath,string musicPath)
 void Viewer::handleLogic()
 {
 	bool doPhysics=true;
-	if(glfwGetKey('Q')==GLFW_PRESS)
+
+	if (!m_dllCall)
 	{
-		doPhysics=false;
+		if (glfwGetKey('Q') == GLFW_PRESS)
+		{
+			doPhysics = false;
+		}
 	}
-	
+
 	//if(glfwGetKey('A')==GLFW_RELEASE)
+	//{
+	if (m_motionPath != "")
 	{
-#if 0
 		if (!motionController->advanceTime())
 		{
 			motionController->updateVertexMorphs();
@@ -146,49 +181,60 @@ void Viewer::handleLogic()
 		}
 		//Debug- hold model in bind pose
 		//holdModelInBindPose();
-		
+
 		mmdPhysics->updateBones(doPhysics);
 		motionController->updateBoneMatrix();
-#else
-		static int idx = 0;
-		std::map<std::wstring, glm::vec3> data = bodyInfoList[idx];
-		motionController->applyKinectBodyInfo(data);
-		idx = (idx + 1) % bodyInfoList.size();
-#endif
-		glUseProgram(bulletPhysics->debugDrawer->shaderProgram);
-		setCamera(bulletPhysics->debugDrawer->MVPLoc);
-		glUseProgram(shaderProgram);
-		setCamera(MVP_loc);
 	}
+	else
+	{
+		QcAutoCriticalLock lock(m_boneDataLock);
+		// static int idx = 0;
+		// std::map<std::wstring, glm::vec3> data = bodyInfoList[idx];
+		motionController->applyKinectBodyInfo(m_boneDatas);
+		// idx = (idx + 1) % bodyInfoList.size();
+	}
+
+	glUseProgram(bulletPhysics->debugDrawer->shaderProgram);
+	setCamera(bulletPhysics->debugDrawer->MVPLoc);
+	glUseProgram(shaderProgram);
+	setCamera(MVP_loc);
 }
 
 void Viewer::render()
 {
-	if(glfwGetKey('A')==GLFW_RELEASE)
+	if (!m_dllCall)
+	{
+		if (glfwGetKey('A') == GLFW_RELEASE)
+		{
+			drawModel(true); //draw model edges
+			drawModel(false); //draw model
+		}
+
+		if (glfwGetKey('S') == GLFW_PRESS)
+		{
+			bulletPhysics->SetDebugMode(btIDebugDraw::DBG_DrawWireframe);
+			bulletPhysics->DebugDrawWorld();
+		}
+		else if (glfwGetKey('D') == GLFW_PRESS)
+		{
+			bulletPhysics->SetDebugMode(btIDebugDraw::DBG_DrawAabb);
+			bulletPhysics->DebugDrawWorld();
+		}
+		else if (glfwGetKey('F') == GLFW_PRESS)
+		{
+			bulletPhysics->SetDebugMode(btIDebugDraw::DBG_DrawConstraints);
+			bulletPhysics->DebugDrawWorld();
+		}
+		else if (glfwGetKey('G') == GLFW_PRESS)
+		{
+			bulletPhysics->SetDebugMode(btIDebugDraw::DBG_DrawConstraintLimits);
+			bulletPhysics->DebugDrawWorld();
+		}
+	}
+	else
 	{
 		drawModel(true); //draw model edges
 		drawModel(false); //draw model
-	}
-	
-	if(glfwGetKey('S')==GLFW_PRESS)
-	{
-		bulletPhysics->SetDebugMode(btIDebugDraw::DBG_DrawWireframe);
-		bulletPhysics->DebugDrawWorld();
-	}
-	else if(glfwGetKey('D')==GLFW_PRESS)
-	{
-		bulletPhysics->SetDebugMode(btIDebugDraw::DBG_DrawAabb);
-		bulletPhysics->DebugDrawWorld();
-	}
-	else if(glfwGetKey('F')==GLFW_PRESS)
-	{
-		bulletPhysics->SetDebugMode(btIDebugDraw::DBG_DrawConstraints);
-		bulletPhysics->DebugDrawWorld();
-	}
-	else if(glfwGetKey('G')==GLFW_PRESS)
-	{
-		bulletPhysics->SetDebugMode(btIDebugDraw::DBG_DrawConstraintLimits);
-		bulletPhysics->DebugDrawWorld();
 	}
 	glUseProgram(shaderProgram); //Restore shader program and buffer's to Viewer's after drawing Bullet debug
 	glBindVertexArray(VAOs[Vertices]);
@@ -228,20 +274,151 @@ void Viewer::fpsCount()
 	}
 }
 
+void Viewer::init()
+{
+	// 创建FBO对象
+
+	log("Viewer::init");
+	glGenFramebuffersEXT(1, &m_imageFBO);
+	// 启用FBO
+	glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, m_imageFBO);
+
+	// 创建纹理
+	glGenTextures(1, &m_offscreenTexture);
+	// 启用纹理
+	glBindTexture(GL_TEXTURE_2D, m_offscreenTexture);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, TEXTURE_WIDTH, TEXTURE_HEIGHT, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, m_offscreenTexture, 0);
+
+	glGenRenderbuffersEXT(1, &m_depthTextureID);
+	glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, m_depthTextureID);
+	glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, GL_DEPTH_COMPONENT, TEXTURE_WIDTH, TEXTURE_HEIGHT);
+	glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT, GL_RENDERBUFFER_EXT, m_depthTextureID);
+	glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
+
+	glDisable(GL_CULL_FACE);
+	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glPointSize(5.0);
+	glClearColor(1, 1, 1, 1);
+
+	glViewport(0, 0, TEXTURE_WIDTH, TEXTURE_HEIGHT);
+
+	GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+	switch (status)
+	{
+	case GL_FRAMEBUFFER_COMPLETE:
+		log("Framebuffer complete.");
+		return;
+
+	case GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT:
+		err("[ERROR] Framebuffer incomplete: Attachment is NOT complete.");
+		return;
+
+	case GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT:
+		err("[ERROR] Framebuffer incomplete: No image is attached to FBO.");
+		return;
+
+	case GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER:
+		err("[ERROR] Framebuffer incomplete: Draw buffer.");
+		return;
+
+	case GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER:
+		err("[ERROR] Framebuffer incomplete: Read buffer.");
+		return;
+
+	case GL_FRAMEBUFFER_UNSUPPORTED:
+		err("[ERROR] Framebuffer incomplete: Unsupported by FBO implementation.");
+		return;
+
+	default:
+		err("[ERROR] Framebuffer incomplete: Unknown error.");
+		return;
+	}
+}
+
 void Viewer::run()
 {
-	while(glfwGetKey( GLFW_KEY_ESC ) != GLFW_PRESS && glfwGetWindowParam( GLFW_OPENED ))
+	if (!m_dllCall)
 	{
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		startTime = glfwGetTime();
-		
-		fpsCount();
-		handleEvents();
-		handleLogic();
-		render();
-		
-		glfwSwapBuffers();
+		while (glfwGetKey(GLFW_KEY_ESC) != GLFW_PRESS && glfwGetWindowParam(GLFW_OPENED))
+		{
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+			startTime = glfwGetTime();
+
+			fpsCount();
+			handleEvents();
+			handleLogic();
+			render();
+
+			glfwSwapBuffers();
+		}
 	}
+	else
+	{
+		if (m_boneAnimationFlag)
+		{
+			glBindFramebuffer(GL_FRAMEBUFFER, m_imageFBO);
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // We're not using stencil buffer now
+			glEnable(GL_DEPTH_TEST);
+
+			startTime = glfwGetTime();
+
+			fpsCount();
+			handleLogic();
+			render();
+
+			glfwSwapBuffers();
+		}
+	}
+}
+
+void Viewer::copyOfTextureData(unsigned char* dst)
+{
+	unsigned char* dstData = new unsigned char[TEXTURE_WIDTH * TEXTURE_HEIGHT * 4];
+	memset(dstData, 0, TEXTURE_WIDTH * TEXTURE_HEIGHT * 4);
+	glReadBuffer(GL_COLOR_ATTACHMENT0);
+	glReadPixels(0, 0, TEXTURE_WIDTH, TEXTURE_HEIGHT, GL_RGBA, GL_UNSIGNED_BYTE, dstData);
+	memcpy_s((void*)dst, TEXTURE_WIDTH * TEXTURE_HEIGHT * 4, (void*)dstData, TEXTURE_WIDTH *TEXTURE_HEIGHT * 4);
+	/*int save_result = SOIL_save_image
+	(
+	"opengltest1.png",
+	SOIL_SAVE_TYPE_BMP,
+	TEXTURE_WIDTH, TEXTURE_HEIGHT, 4,
+	dstData
+	);*/
+	SOIL_free_image_data(dstData);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+void Viewer::setBoneAnimationFlag(bool flag)
+{
+	m_boneAnimationFlag = flag;
+	if (!m_boneAnimationFlag)
+	{
+		// 清除当前正在运行的mmd的模型，也就是全部都重置，方便下一次选择另一个模型之后的重建，暂未实现
+	}
+}
+
+void Viewer::updateBoneData(const BoneData* item, const int len)
+{
+	QcAutoCriticalLock lock(m_boneDataLock);
+	for (int i = 0; i < len; i++)
+	{
+		BoneData data = *(item + i);
+		m_boneDatas[data.name] = glm::vec3(data.x, data.y, data.z);
+	}
+}
+
+void Viewer::unint()
+{
+	log("Viewer unint.");
+	glDeleteFramebuffers(1, &m_imageFBO);
 }
 
 void Viewer::setCamera(GLuint MVPLoc)
@@ -785,8 +962,8 @@ void Viewer::initGLFW()
 	static const int redBits=0,greenBits=0,blueBits=0,alphaBits=0,depthBits=32,stencilBits=0;
 	
 	
-	//First, try to start in OpenGL 3.2+ mode
-	GLVersionHintMajor=3,GLVersionHintMinor=2;
+	//First, try to start in OpenGL 4.2+ mode
+	GLVersionHintMajor=4,GLVersionHintMinor=2;
 	glfwOpenWindowHint(GLFW_FSAA_SAMPLES, 2); //2x antialiasing
 	glfwOpenWindowHint(GLFW_OPENGL_VERSION_MAJOR, GLVersionHintMajor); //OpenGL version
 	glfwOpenWindowHint(GLFW_OPENGL_VERSION_MINOR, GLVersionHintMinor);
@@ -867,7 +1044,10 @@ void Viewer::initUniformVarLocations()
 
 Viewer::~Viewer()
 {
-	glfwTerminate();
+	if (m_dllCall)
+	{
+		glfwTerminate();
+	}
 }
 
 void Viewer::handleEvents()

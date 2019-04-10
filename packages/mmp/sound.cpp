@@ -4,6 +4,8 @@
 #include "SDL_mixer.h"
 
 #include <iostream>
+#include "../libtext.h"
+#include "../pmxvLogger.h"
 
 using namespace std;
 
@@ -11,7 +13,7 @@ void initSound(string filename)
 {
 	if(filename=="") return;
 	
-	cout<<"initializing sound...";
+	log("initSound initializing sound...");
 	
 	SDL_Init(SDL_INIT_AUDIO);
 	
@@ -27,7 +29,7 @@ void initSound(string filename)
 	
 	if(Mix_OpenAudio(audio_rate, audio_format, audio_channels, audio_buffers)==-1)
 	{
-		printf("Error initializing SDL_mixer: %s\n", Mix_GetError());
+		err(libtext::format("Error initializing SDL_mixer: %s\n", Mix_GetError()));
 		exit(EXIT_FAILURE);
 	}
 	
@@ -37,11 +39,11 @@ void initSound(string filename)
 	
 	if( music == NULL)
 	{
-		cerr<<"ERROR: playMusic failed to load music"<<endl;
+		err("ERROR: playMusic failed to load music");
 		cerr<<SDL_GetError()<<endl;
 	}
 	
-	cout<<"done"<<endl;
+	log("initSound done");
 
 	Mix_PlayMusic(music, 0);
 }

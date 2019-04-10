@@ -2,19 +2,10 @@
 #include <assert.h>
 #include <iostream>
 
-const std::string CONST_DEFAULT_LOGNAME = "log.txt";
+const std::string CONST_DEFAULT_LOGNAME = "yymmplog.txt";
 
 pmxvLogger::pmxvLogger()
 {
-	startLog(CONST_DEFAULT_LOGNAME);
-}
-
-pmxvLogger::pmxvLogger(const std::string &logfilename)
-{
-	if (logfilename.length() > 0)
-		startLog(logfilename);
-	else
-		startLog(CONST_DEFAULT_LOGNAME);
 }
 
 pmxvLogger* pmxvLogger::get()
@@ -22,7 +13,7 @@ pmxvLogger* pmxvLogger::get()
 	static pmxvLogger *instance = 0;
 	
 	if (!instance)
-		instance = new pmxvLogger("log.txt");
+		instance = new pmxvLogger();
 		
 	return instance;
 }
@@ -33,14 +24,14 @@ pmxvLogger::~pmxvLogger()
 	delete logfile;
 }
 
-void pmxvLogger::startLog(const std::string &logfilename)
+void pmxvLogger::setLogPath(const std::string & path)
 {
-	assert(logfilename.length() > 0);
+	std::string logfilename = path.empty() ? CONST_DEFAULT_LOGNAME : (path + "\\" + CONST_DEFAULT_LOGNAME);
 	logfile = new std::ofstream();
 	logfile->open(logfilename, std::ios::app | std::ios::out);
 	assert(logfile->is_open());
 }
-	
+
 void pmxvLogger::e(const std::string &error)
 {
 	static std::string msg;

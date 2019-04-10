@@ -6,6 +6,8 @@
 #include <sstream>
 
 #include "texthandle.h"
+#include "../libtext.h"
+#include "../pmxvLogger.h"
 
 using namespace std;
 
@@ -18,7 +20,10 @@ namespace ClosedMMDFormat
 		VMDInfo &vmdInfo = *vInfo;
 		
 		ifstream miku(filename.c_str(), ios::in | ios::binary);
-		if (!miku) { cerr<<"ERROR: VMD file could not be found: "<<filename<<endl; }
+		if (!miku) 
+		{
+			log(libtext::format("ERROR: VMD file could not be found: filename =%s", filename.c_str()));
+		}
 		
 		//***Extract Header Info***
 		char headerStr[30];
@@ -39,7 +44,7 @@ namespace ClosedMMDFormat
 		
 		//cout<<"Bone Count: "<<boneCount<<endl;
 		
-		cout<<"Loading bone frames...";
+		log("vmd: Loading bone frames...");
 		for(int i=0; i < vmdInfo.boneFrames.size(); ++i)
 		{
 			VMDBoneFrame *f = &vmdInfo.boneFrames[i];
@@ -113,7 +118,7 @@ namespace ClosedMMDFormat
 			cout<<"Position: "<<f->position.x<<" "<<f->position.y<<" "<<f->position.z<<endl;
 			cout<<"Quaternion: "<<f->quaternion.x<<" "<<f->quaternion.y<<" "<<f->quaternion.z<<" "<<f->quaternion.w<<endl;*/
 		}
-		cout<<"done."<<endl;
+		log("vmd: done.");
 		
 		//***Extract Morph Info***
 		unsigned morphCount=0;
@@ -121,8 +126,7 @@ namespace ClosedMMDFormat
 		vmdInfo.morphFrames.resize(morphCount);
 		
 		//cout<<"Morph Count: "<<vmdInfo.morphCount<<endl;
-		
-		cout<<"Loading morph frames...";
+		log("vmd: Loading morph frames...");
 		for(int i=0; i < vmdInfo.morphFrames.size(); ++i)
 		{
 			VMDMorphFrame *f = &vmdInfo.morphFrames[i];
@@ -139,7 +143,7 @@ namespace ClosedMMDFormat
 			cout<<"Frame Number: "<<f->frame<<endl;
 			cout<<"Value: "<<f->value<<endl<<endl;*/
 		}
-		cout<<"done."<<endl;
+		log("vmd: done.");
 		
 		///NOTHING PAST THIS POINT TESTED (yet)
 		
@@ -149,7 +153,7 @@ namespace ClosedMMDFormat
 		vmdInfo.cameraFrames.resize(cameraCount);
 		//cout<<"Camera Count: "<<vmdInfo.cameraCount<<endl;
 		
-		cout<<"Loading camera frames...";
+		log("vmd Loading camera frames...");
 		for(int i=0; i < vmdInfo.cameraFrames.size(); ++i)
 		{
 			VMDCameraFrame *f = &vmdInfo.cameraFrames[i];
@@ -172,7 +176,7 @@ namespace ClosedMMDFormat
 			char bezier[24];
 			miku.read((char*)&bezier, 24);
 		}
-		cout<<"done."<<endl;	
+		log("vmd: done.");
 		
 		
 		//***Extract Light Info***
@@ -181,7 +185,7 @@ namespace ClosedMMDFormat
 		vmdInfo.lightFrames.resize(lightCount);
 		//cout<<"Light Count: "<<lightCount<<endl;
 		
-		cout<<"Loading light frames...";
+		log("vmd Loading light frames...");
 		for(int i=0; i < vmdInfo.lightFrames.size(); ++i)
 		{
 			VMDLightFrame *f = &vmdInfo.lightFrames[i];
@@ -197,7 +201,7 @@ namespace ClosedMMDFormat
 			miku.read((char*)&f->position.z, 4);
 			f->position.z = -f->position.z;
 		}
-		cout<<"done."<<endl;
+		log("vmd: done.");
 	
 		//***Extract Self Shadow Info***
 		unsigned selfShadowCount=0;
@@ -205,7 +209,7 @@ namespace ClosedMMDFormat
 		vmdInfo.selfShadowFrames.resize(selfShadowCount);
 		//cout<<"SelfShadow Count: "<<selfShadowCount<<endl;
 		
-		cout<<"Loading SelfShadow frames...";
+		log("vmd: Loading SelfShadow frames...");
 		for(int i=0; i < vmdInfo.selfShadowFrames.size(); ++i)
 		{
 			VMDSelfShadowFrame *f = &vmdInfo.selfShadowFrames[i];
@@ -214,15 +218,15 @@ namespace ClosedMMDFormat
 			miku.read((char*)&f->type,     1);
 			miku.read((char*)&f->distance, 4);
 		}
-		cout<<"done."<<endl;
+		log("vmd: done.");
 		
 		//***Extract Show IK Frame Info***
 		unsigned showIKCount=0;
 		miku.read((char*)&showIKCount, 4);
 		vmdInfo.showIKFrames.resize(showIKCount);
 		//cout<<"ShowIK Count: "<<showIKCount<<endl;
-		
-		cout<<"Loading ShowIK frames...";
+
+		log("vmd Loading ShowIK frames...");
 		for(int i=0; i < vmdInfo.showIKFrames.size(); ++i)
 		{
 			VMDShowIKFrame *f = &vmdInfo.showIKFrames[i];
@@ -243,7 +247,7 @@ namespace ClosedMMDFormat
 				miku.read((char*)&info->isOn, 1);
 			}
 		}
-		cout<<"done."<<endl;
+		log("vmd: done.");
 
 		cout<<endl;
 		
@@ -255,7 +259,7 @@ namespace ClosedMMDFormat
 	void writeVMD(VMDInfo &vmdInfo, string filename)
 	{
 		ofstream miku(filename.c_str(), ios::out | ios::binary);
-		if (!miku) { cerr<<"ERROR: VMD file could not be found: "<<filename<<endl; }
+		if (!miku) { log(libtext::format("ERROR: VMD file could not be found: filename =%s", filename.c_str())); }
 		
 		static const char headerStr[30]="Vocaloid Motion Data 0002\0\0\0\0"; //The last '\0' is implied
 		string modelName=UTF8ToSJIS(vmdInfo.modelName.c_str()); //TODO: Convert UTF8 string back to SHIFT_JIS!!!

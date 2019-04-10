@@ -8,21 +8,17 @@ class pmxvLogger
 {
 public:
 	static pmxvLogger* get();
-	
+
+	pmxvLogger();
 	~pmxvLogger();
 	
+	void setLogPath(const std::string & path);
 	void e(const std::string &error);
 	void d(const std::string &debug);
 	void m(const std::string &message);
 	
 protected:
-	pmxvLogger();
-	pmxvLogger(const std::string &);
-	
-	void startLog(const std::string &);
-
 	std::ofstream* logfile;
-
 };
 
 #define err pmxvLogger::get()->e

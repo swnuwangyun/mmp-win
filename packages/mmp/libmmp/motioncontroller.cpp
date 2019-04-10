@@ -58,104 +58,107 @@ VMDMotionController::VMDMotionController(PMXInfo &pmxInfo,VMDInfo &vmdInfo,GLuin
 	
 	Bones_loc=glGetUniformLocation(shaderProgram,"Bones");
 	
-	
-	boneKeyFrames.resize(pmxInfo.bone_continuing_datasets);
-	for(unsigned i=0; i<vmdInfo.boneFrames.size(); ++i)
+	if (&vmdInfo != NULL)
 	{
-		//cout<<"Searching for match in model for "<<vmdInfo.boneFrames[i].name<<"...";
-		for(unsigned j=0; j<pmxInfo.bone_continuing_datasets; ++j)
+		boneKeyFrames.resize(pmxInfo.bone_continuing_datasets);
+		for (unsigned i = 0; i<vmdInfo.boneFrames.size(); ++i)
 		{
-			//Search for the bone number from the bone name
-			if(vmdInfo.boneFrames[i].name == pmxInfo.bones[j]->name)
+			//cout<<"Searching for match in model for "<<vmdInfo.boneFrames[i].name<<"...";
+			for (unsigned j = 0; j<pmxInfo.bone_continuing_datasets; ++j)
 			{
-				//cout<<"Match found";
-				boneKeyFrames[j].push_back(vmdInfo.boneFrames[i]);
-				continue;
+				//Search for the bone number from the bone name
+				if (vmdInfo.boneFrames[i].name == pmxInfo.bones[j]->name)
+				{
+					//cout<<"Match found";
+					boneKeyFrames[j].push_back(vmdInfo.boneFrames[i]);
+					continue;
+				}
+				else
+				{
+					//cout<<vmdInfo.boneFrames[i].name<<" "<<pmxInfo.bones[j]->name<<endl;
+				}
 			}
-			else
+			//cout<<endl;
+		}
+
+		for (unsigned int i = 0; i<pmxInfo.bone_continuing_datasets; ++i)
+		{
+			boneKeyFrames[i].sort();
+			ite_boneKeyFrames.push_back(boneKeyFrames[i].begin());
+			boneRot.push_back(glm::quat(1, 0, 0, 0));
+			bonePos.push_back(glm::vec3(0, 0, 0));
+		}
+
+		morphKeyFrames.resize(pmxInfo.morph_continuing_datasets);
+		for (unsigned i = 0; i<vmdInfo.morphFrames.size(); ++i)
+		{
+			for (unsigned j = 0; j<pmxInfo.morph_continuing_datasets; ++j)
 			{
-				//cout<<vmdInfo.boneFrames[i].name<<" "<<pmxInfo.bones[j]->name<<endl;
+				//Search for the bone number from the bone name
+				if (vmdInfo.morphFrames[i].name == pmxInfo.morphs[j]->name)
+				{
+					morphKeyFrames[j].push_back(vmdInfo.morphFrames[i]);
+					break;
+				}
 			}
 		}
-		//cout<<endl;
-	}
-	
-	for(unsigned int i=0; i<pmxInfo.bone_continuing_datasets; ++i)
-	{
-		boneKeyFrames[i].sort();
-		ite_boneKeyFrames.push_back(boneKeyFrames[i].begin());
-		boneRot.push_back(glm::quat(1, 0, 0, 0));
-		bonePos.push_back(glm::vec3(0, 0, 0));
+
+		for (unsigned i = 0; i<pmxInfo.morph_continuing_datasets; ++i)
+		{
+			morphKeyFrames[i].sort();
+			ite_morphKeyFrames.push_back(morphKeyFrames[i].begin());
+
+			vMorphWeights.push_back(0);
+		}
 	}
 	
 	#ifdef MODELDUMP
 	ofstream modeldump("modeldump.txt");
 	#endif
-	
 	//***INIT VERTEX DATA VARIABLES***
-	vertexData = (VertexData*)malloc(pmxInfo.vertex_continuing_datasets*sizeof(VertexData)*2);
-	for(int i=0; i<pmxInfo.vertex_continuing_datasets; ++i)
+	vertexData = (VertexData*)malloc(pmxInfo.vertex_continuing_datasets * sizeof(VertexData) * 2);
+	for (int i = 0; i<pmxInfo.vertex_continuing_datasets; ++i)
 	{
-		vertexData[i].position.x=pmxInfo.vertices[i]->pos[0];
-		vertexData[i].position.y=pmxInfo.vertices[i]->pos[1];
-		vertexData[i].position.z=pmxInfo.vertices[i]->pos[2];
-		vertexData[i].position.w=1.0;
+		vertexData[i].position.x = pmxInfo.vertices[i]->pos[0];
+		vertexData[i].position.y = pmxInfo.vertices[i]->pos[1];
+		vertexData[i].position.z = pmxInfo.vertices[i]->pos[2];
+		vertexData[i].position.w = 1.0;
 
-		vertexData[i].UV.x=pmxInfo.vertices[i]->UV[0];
-		vertexData[i].UV.y=pmxInfo.vertices[i]->UV[1];
+		vertexData[i].UV.x = pmxInfo.vertices[i]->UV[0];
+		vertexData[i].UV.y = pmxInfo.vertices[i]->UV[1];
 
-		vertexData[i].normal.x=pmxInfo.vertices[i]->normal[0];
-		vertexData[i].normal.y=pmxInfo.vertices[i]->normal[1];
-		vertexData[i].normal.z=pmxInfo.vertices[i]->normal[2];
+		vertexData[i].normal.x = pmxInfo.vertices[i]->normal[0];
+		vertexData[i].normal.y = pmxInfo.vertices[i]->normal[1];
+		vertexData[i].normal.z = pmxInfo.vertices[i]->normal[2];
 
-		vertexData[i].weightFormula=pmxInfo.vertices[i]->weight_transform_formula;
+		vertexData[i].weightFormula = pmxInfo.vertices[i]->weight_transform_formula;
 
-		vertexData[i].boneIndex1=pmxInfo.vertices[i]->boneIndex1;
-		vertexData[i].boneIndex2=pmxInfo.vertices[i]->boneIndex2;
-		vertexData[i].boneIndex3=pmxInfo.vertices[i]->boneIndex3;
-		vertexData[i].boneIndex4=pmxInfo.vertices[i]->boneIndex4;
+		vertexData[i].boneIndex1 = pmxInfo.vertices[i]->boneIndex1;
+		vertexData[i].boneIndex2 = pmxInfo.vertices[i]->boneIndex2;
+		vertexData[i].boneIndex3 = pmxInfo.vertices[i]->boneIndex3;
+		vertexData[i].boneIndex4 = pmxInfo.vertices[i]->boneIndex4;
 
-		vertexData[i].weight1=pmxInfo.vertices[i]->weight1;
-		vertexData[i].weight2=pmxInfo.vertices[i]->weight2;
-		vertexData[i].weight3=pmxInfo.vertices[i]->weight3;
-		vertexData[i].weight4=pmxInfo.vertices[i]->weight4;
-                   
+		vertexData[i].weight1 = pmxInfo.vertices[i]->weight1;
+		vertexData[i].weight2 = pmxInfo.vertices[i]->weight2;
+		vertexData[i].weight3 = pmxInfo.vertices[i]->weight3;
+		vertexData[i].weight4 = pmxInfo.vertices[i]->weight4;
+
 		//cout<<vertexData[i].position.x<<" "<<vertexData[i].position.y<<" "<<vertexData[i].position.z<<" "<<vertexData[i].position.w<<endl;
 		//cout<<vertexData[i].UV.x<<" "<<vertexData[i].UV.y<<endl;
 
 		/*if(pmxInfo.vertices[i]->weight_transform_formula>2)
 		{
-			cerr<<"SDEF and QDEF not supported yet"<<endl;
-			exit(EXIT_FAILURE);
+		cerr<<"SDEF and QDEF not supported yet"<<endl;
+		exit(EXIT_FAILURE);
 		}*/
-		
-		#ifdef MODELDUMP
+
+#ifdef MODELDUMP
 		modeldump << vertexData[i].str();
-		#endif
+#endif
 	}
-	glBufferData(GL_ARRAY_BUFFER, pmxInfo.vertex_continuing_datasets*sizeof(VertexData), vertexData, GL_STREAM_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, pmxInfo.vertex_continuing_datasets * sizeof(VertexData), vertexData, GL_STREAM_DRAW);
+
 	
-	morphKeyFrames.resize(pmxInfo.morph_continuing_datasets);
-	for(unsigned i=0; i<vmdInfo.morphFrames.size(); ++i)
-	{
-		for(unsigned j=0; j<pmxInfo.morph_continuing_datasets; ++j)
-		{
-			//Search for the bone number from the bone name
-			if(vmdInfo.morphFrames[i].name == pmxInfo.morphs[j]->name)
-			{
-				morphKeyFrames[j].push_back(vmdInfo.morphFrames[i]);
-				break;
-			}
-		}
-	}
-	
-	for(unsigned i=0; i<pmxInfo.morph_continuing_datasets; ++i)
-	{
-		morphKeyFrames[i].sort();
-		ite_morphKeyFrames.push_back(morphKeyFrames[i].begin());
-		
-		vMorphWeights.push_back(0);
-	}	
 }
 VMDMotionController::~VMDMotionController()
 {

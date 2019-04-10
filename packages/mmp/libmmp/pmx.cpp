@@ -9,6 +9,8 @@
 
 #include <string.h>
 #include <float.h>
+#include "../libtext.h"
+#include "../pmxvLogger.h"
 
 
 using namespace std;
@@ -117,7 +119,7 @@ namespace ClosedMMDFormat
 		//ifstream miku("apimiku/Appearance Miku.pmx", ios::in | ios::binary);
 		ifstream miku(fname.c_str(), ios::in | ios::binary);
 		if (!miku) {
-			cerr<<"ERROR: PMX file could not be found: "<<fname<<endl;
+			log(libtext::format("ERROR: PMX file could not be found: fname = %s", fname.c_str()));
 			exit(EXIT_FAILURE);
 		}
 		
@@ -132,10 +134,10 @@ namespace ClosedMMDFormat
 			//exit(EXIT_FAILURE);
 		}*/
 		if (pmxInfo.ver != 2.0) {
-			cerr<<"Error: Only version 2.0 of the PMX file format is supported!"<<endl;
+			log("Error: Only version 2.0 of the PMX file format is supported!");
 			exit(EXIT_FAILURE);
 		}
-		cout<<"PMX Ver. "<<pmxInfo.ver<<endl;
+		log(libtext::format("pmxInfo.ver = %f", pmxInfo.ver));
 		
 		miku.read((char*)&pmxInfo.line_size,          1);
 		miku.read((char*)&pmxInfo.unicode_type,       1);
@@ -149,7 +151,7 @@ namespace ClosedMMDFormat
 		
 
 		if (pmxInfo.unicode_type == PMX_ENCODE_UTF8) {
-			cerr<<"WARNING: UTF-8 encoded PMX file loading is untested"<<endl;
+			log("WARNING: UTF-8 encoded PMX file loading is untested");
 		}
 		
 		//***Pull model name, comment info***
@@ -164,7 +166,7 @@ namespace ClosedMMDFormat
 		miku.read((char*)&pmxInfo.vertex_continuing_datasets, 4);
 		
 		//exit(EXIT_SUCCESS);
-		cout<<"Loading vertices...";
+		log("Loading vertices...");
 		for(int i = 0; i < pmxInfo.vertex_continuing_datasets; ++i)
 		{			
 			PMXVertex *vertex = new PMXVertex();
@@ -188,7 +190,7 @@ namespace ClosedMMDFormat
 			miku.read((char*)&vertex->UV.y, 4);
 		
 			if (pmxInfo.extraUVCount > 0) {
-				cerr<<"ERROR: please add support for extra UVs"<<endl;
+				log("ERROR: please add support for extra UVs");
 				exit(EXIT_FAILURE);
 			}
 		
@@ -235,7 +237,7 @@ namespace ClosedMMDFormat
 				//cerr<<"(The program is being forcibly closed because lack of SDEF support is suspected to cause issues in basic model loading and animation"<<endl;
 				//exit(EXIT_FAILURE);
 			} else {
-				cerr<<"ERROR: bone structure (QDEF?) not supported yet"<<endl;
+				log("ERROR: bone structure (QDEF?) not supported yet");
 				exit(EXIT_FAILURE);
 			}
 		
@@ -243,12 +245,12 @@ namespace ClosedMMDFormat
 			
 			pmxInfo.vertices.push_back(vertex);
 		}
-		cout<<"done."<<endl;
+		log("done");
 		
 		//***Pull Face Info***
 		miku.read((char*)&pmxInfo.face_continuing_datasets, 4);
 		
-		cout<<"Loading faces...";
+		log("Loading faces...");
 		for(int i = 0; i < pmxInfo.face_continuing_datasets / 3; i++)
 		{
 			PMXFace *face = new PMXFace();
@@ -259,13 +261,13 @@ namespace ClosedMMDFormat
 			
 			pmxInfo.faces.push_back(face);
 		}
-		cout<<"done."<<endl;
+		log("done");
 		
 		//***Pull Texture Info***	
 		miku.read((char*)&pmxInfo.texture_continuing_datasets, 4);
 		pmxInfo.texturePaths = new string[pmxInfo.texture_continuing_datasets + 11];
 		
-		cout<<"Loading textures...";
+		log("Loading textures...");
 		for(int i = 0; i < pmxInfo.texture_continuing_datasets; ++i)
 		{
 			getPMXText(miku, pmxInfo, pmxInfo.texturePaths[i]);
@@ -279,14 +281,12 @@ namespace ClosedMMDFormat
 				pmxInfo.texturePaths[i][index] = '/';
 			}
 		}
-
-
-		cout<<"done."<<endl;
+		log("done");
 		
 		//***Pull Material Info***
 		miku.read((char*)&pmxInfo.material_continuing_datasets, 4);
 		
-		cout<<"Loading materials...";
+		log("Loading materials...");
 		for(int i = 0; i < pmxInfo.material_continuing_datasets; ++i)
 		{		
 			PMXMaterial *material = new PMXMaterial();
@@ -379,17 +379,18 @@ namespace ClosedMMDFormat
 			miku.read((char*)&material->hasFaceNum, 4);
 			
 			if (material->name == u8"め") {
-				cout<<"eye info: "<<material->hasFaceNum<<" "<<(int)material->sphereMode<<" "<<(int)material->shareToon<<" "<<endl;
+				log(libtext::format("eye info: hasFaceNum=%d, sphereMode=%d, shareToon=%d\n", 
+					material->hasFaceNum, (int)material->sphereMode, (int)material->shareToon));
 			}
 			
 			pmxInfo.materials.push_back(material);
 		}
-		cout<<"done."<<endl;
+		log("done");
 		
 		//***Pull Bone Info***
 		miku.read((char*)&pmxInfo.bone_continuing_datasets, 4);
 		
-		cout<<"Loading bones...";
+		log("Loading bones...");
 		for(int i = 0; i < pmxInfo.bone_continuing_datasets; ++i)
 		{
 			PMXBone *bone = new PMXBone();
@@ -410,7 +411,7 @@ namespace ClosedMMDFormat
 			
 			if(bone->parentBoneIndex != -1) {
 				if (bone->parentBoneIndex >= pmxInfo.bones.size())
-					printf("Error: parentBoneIndex out of range\r\n");
+					err("Error: parentBoneIndex out of range\r\n");
 				else
 					bone->parent = pmxInfo.bones[bone->parentBoneIndex];
 			} else {
@@ -537,13 +538,13 @@ namespace ClosedMMDFormat
 				bone->LocalPosition = bone->position;
 			}
 		}
-		cout<<"done."<<endl;
+		log("done");
 			
 		//***Pull Morph Info***
 		miku.read((char*)&pmxInfo.morph_continuing_datasets, 4);
 		//cout<<"Morph Continuing Datasets: "<<pmxInfo.morph_continuing_datasets<<endl;
 		
-		cout<<"Loading morphs...";
+		log("Loading morphs...");
 		for(int m = 0; m < pmxInfo.morph_continuing_datasets; ++m)
 		{
 			//cout<<"[Morph "<<i<<endl;
@@ -692,7 +693,7 @@ namespace ClosedMMDFormat
 					
 					default:
 					{
-						cerr<<"Unknown morph type or faulty data/reading"<<endl;
+						err("Unknown morph type or faulty data/reading");
 						exit(EXIT_FAILURE);
 					}
 				}
@@ -701,13 +702,13 @@ namespace ClosedMMDFormat
 			}
 			pmxInfo.morphs.push_back(morph);
 		}
-		cout<<"done"<<endl;
+		log("done");
 		
 		//***Pull Display Frame Info***
 		miku.read((char*)&pmxInfo.display_frame_continuing_datasets, 4);
 		//cout<<"Display Frame Continuing Datasets: "<<pmxInfo.display_frame_continuing_datasets<<endl;
 		
-		cout<<"Loading display frame...";
+		log("Loading display frame...");
 		for(int f = 0; f < pmxInfo.display_frame_continuing_datasets; ++f)
 		{
 			PMXDisplayFrame *df = new PMXDisplayFrame();
@@ -741,13 +742,13 @@ namespace ClosedMMDFormat
 			}
 			pmxInfo.displayFrames.push_back(df);
 		}
-		cout<<"done"<<endl;
+		log("done");
 		
 		//***Pull Rigid Body Info***
 		miku.read((char*)&pmxInfo.rigid_body_continuing_datasets, 4);
 		//cout<<"Rigid Body Continuing Datasets: "<<pmxInfo.rigid_body_continuing_datasets<<endl;
 		
-		cout<<"Loading rigid body...";
+		log("Loading rigid body...");
 		for(int i = 0; i < pmxInfo.rigid_body_continuing_datasets; ++i)
 		{
 			PMXRigidBody *rb = new PMXRigidBody();
@@ -790,7 +791,7 @@ namespace ClosedMMDFormat
 			
 			pmxInfo.rigidBodies.push_back(rb);
 		}
-		cout<<"done"<<endl;
+		log("done");
 		
 		//***Pull Rigid Body Info***
 		miku.read((char*)&pmxInfo.joint_continuing_datasets, 4);
@@ -846,16 +847,15 @@ namespace ClosedMMDFormat
 				miku.read((char*)&joint->springRotationConstant.y, 4);
 				miku.read((char*)&joint->springRotationConstant.z, 4);
 			} else {
-				cerr<<"Unsupported PMX format version or file reading error"<<endl;
+				log("Unsupported PMX format version or file reading error");
 				exit(EXIT_FAILURE);
 			}
 			
 			pmxInfo.joints.push_back(joint);
 		}
-		cout<<"Loading joints...";
-		
-		cout<<"done"<<endl<<endl;
-		
+		log("Loading joints...");
+
+		log("done");
 		/*cout<<"Miku Good: "<<miku.good()<<endl;
 		
 		char data_byte[1];
