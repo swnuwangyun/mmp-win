@@ -464,7 +464,9 @@ void Viewer::loadTextures()
 	for(int i=0; i<pmxInfo->texture_continuing_datasets; ++i)
 	{
 		cout<<"Loading "<<pmxInfo->texturePaths[i]<<"...";
-		if(pmxInfo->texturePaths[i].substr(pmxInfo->texturePaths[i].size()-3)=="png" || pmxInfo->texturePaths[i].substr(pmxInfo->texturePaths[i].size()-3)=="spa")
+		if (pmxInfo->texturePaths[i].substr(pmxInfo->texturePaths[i].size() - 3) == "png"
+			|| pmxInfo->texturePaths[i].substr(pmxInfo->texturePaths[i].size() - 3) == "spa"
+			|| pmxInfo->texturePaths[i].substr(pmxInfo->texturePaths[i].size() - 3) == "bmp")
 		{
 			GLuint texture;
 			int width, height;
@@ -482,7 +484,7 @@ void Viewer::loadTextures()
 			glActiveTexture( GL_TEXTURE0 );
 			glGenTextures( 1, &texture );
 			glBindTexture( GL_TEXTURE_2D, texture );
-				image = SOIL_load_image( loc.c_str(), &width, &height, 0, SOIL_LOAD_RGBA );
+			image = SOIL_load_image( loc.c_str(), &width, &height, 0, SOIL_LOAD_RGBA );
 			glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image );
 			SOIL_free_image_data( image );
 
@@ -636,8 +638,8 @@ void Viewer::loadTextures()
 			//exit(EXIT_FAILURE);
 			
 			loc.str(std::string()); //clear ss
-			if(i!=10) loc<<DATA_PATH<<"/textures/toon0"<<i<<".bmp";
-			else loc<<DATA_PATH<<"/textures/toon10.bmp";
+			if(i!=10) loc<<DATA_PATH<<"\\textures\\toon0"<<i<<".bmp";
+			else loc<<DATA_PATH<<"\\textures\\toon10.bmp";
 			
 			ifstream test2(loc.str());
 			if(!test2.is_open())
