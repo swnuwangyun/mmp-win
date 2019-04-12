@@ -933,11 +933,25 @@ void Viewer::hackShaderFiles()
 		ifstream test("shaders/model.vert");
 		if(!test.is_open())
 		{
-			shaderProgram=compileShaders(DATA_PATH+"/shaders/model.vert",DATA_PATH+"/shaders/model.frag");
+			if (m_dllCall)
+			{
+				shaderProgram = compileShaders(DATA_PATH + "/shaders/model_flip.vert", DATA_PATH + "/shaders/model.frag");
+			}
+			else
+			{
+				shaderProgram = compileShaders(DATA_PATH + "/shaders/model.vert", DATA_PATH + "/shaders/model.frag");
+			}
 		}
 		else
 		{
-			shaderProgram=compileShaders("shaders/model.vert","shaders/model.frag");
+			if (m_dllCall)
+			{
+				shaderProgram = compileShaders("shaders/model_flip.vert", "shaders/model.frag");
+			}
+			else
+			{
+				shaderProgram = compileShaders("shaders/model.vert", "shaders/model.frag");
+			}
 		}
 		test.close();
 		
