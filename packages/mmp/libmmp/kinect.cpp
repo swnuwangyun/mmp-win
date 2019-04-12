@@ -14,29 +14,39 @@ std::map<std::wstring, KinectListItem> kinectBoneList = {
 	{ L"ElbowRight",{ L"左ひじ", L"WristRight", -1 } },
 	{ L"WristRight",{ L"左手首", L"HandRight", -1 } },
 	{ L"HandRight",{ L"左中指１", L"", -1 } },
-#if 0
+
 	// js中的模型用这个映射
+	//{ L"HipLeft",{ L"右足", L"KneeLeft", -1 } },
+	//{ L"KneeLeft",{ L"右ひざ", L"AnkleLeft", -1 } },
+	//{ L"AnkleLeft",{ L"右足首", L"FootLeft", -1 } },
+	//{ L"FootLeft",{ L"右つま先", L"", -1 } },
+
+	//{ L"HipRight",{ L"左足", L"KneeRight", -1 } },
+	//{ L"KneeRight",{ L"左ひざ", L"AnkleRight", -1 } },
+	//{ L"AnkleRight",{ L"左足首", L"FootRight", -1 } },
+	//{ L"FootRight",{ L"左つま先", L"", -1 } }
+
+	// 彬彬的模型用这个映射
 	{ L"HipLeft",{ L"右足", L"KneeLeft", -1 } },
 	{ L"KneeLeft",{ L"右ひざ", L"AnkleLeft", -1 } },
 	{ L"AnkleLeft",{ L"右足首", L"FootLeft", -1 } },
-	{ L"FootLeft",{ L"右つま先", L"", -1 } },
+	{ L"FootLeft",{ L"右足首先", L"", -1 } },
 
 	{ L"HipRight",{ L"左足", L"KneeRight", -1 } },
 	{ L"KneeRight",{ L"左ひざ", L"AnkleRight", -1 } },
 	{ L"AnkleRight",{ L"左足首", L"FootRight", -1 } },
-	{ L"FootRight",{ L"左つま先", L"", -1 } }
-#else
-	// mmp中的映射用这个
-	{ L"HipLeft",{ L"腰キャンセル右", L"KneeLeft", -1 } },
-	{ L"KneeLeft",{ L"右ひざD", L"AnkleLeft", -1 } },
-	{ L"AnkleLeft",{ L"右足首D", L"FootLeft", -1 } },
-	{ L"FootLeft",{ L"右足先EX", L"", -1 } },
+	{ L"FootRight",{ L"左足首先", L"", -1 } }
 
-	{ L"HipRight",{ L"腰キャンセル左", L"KneeRight", -1 } },
-	{ L"KneeRight",{ L"左ひざD", L"AnkleRight", -1 } },
-	{ L"AnkleRight",{ L"左足首D", L"FootRight", -1 } },
-	{ L"FootRight",{ L"左足先EX", L"", -1 } }
-#endif
+	// mmp中的映射用这个
+	//{ L"HipLeft",{ L"腰キャンセル右", L"KneeLeft", -1 } },
+	//{ L"KneeLeft",{ L"右ひざD", L"AnkleLeft", -1 } },
+	//{ L"AnkleLeft",{ L"右足首D", L"FootLeft", -1 } },
+	//{ L"FootLeft",{ L"右足先EX", L"", -1 } },
+
+	//{ L"HipRight",{ L"腰キャンセル左", L"KneeRight", -1 } },
+	//{ L"KneeRight",{ L"左ひざD", L"AnkleRight", -1 } },
+	//{ L"AnkleRight",{ L"左足首D", L"FootRight", -1 } },
+	//{ L"FootRight",{ L"左足先EX", L"", -1 } }
 };
 
 extern std::vector<std::wstring> startJoints = {
