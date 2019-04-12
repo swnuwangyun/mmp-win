@@ -19,6 +19,10 @@ public:
 	virtual void setLogPath(const char* logPath);
 	virtual bool unInit();
 
+public:
+	// 用于区分是否本工程调用还是外界DLL调用
+	void setMainThread(DWORD threadId);
+
 private:
 	void resetViewer();
 	void pmxVmdPathTranster(const char* modePath, const char* motionPath, std::string& dstModePath, std::string& dstmotionPath);
@@ -28,4 +32,6 @@ private:
 	HMODULE			 m_hModOF_glew;
 	static YYMMDImpl *m_instance;
 	Viewer* m_viewer;
+
+	DWORD m_threadId;
 };

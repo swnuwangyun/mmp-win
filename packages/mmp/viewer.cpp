@@ -188,10 +188,17 @@ void Viewer::handleLogic()
 	else
 	{
 		QcAutoCriticalLock lock(m_boneDataLock);
-		// static int idx = 0;
-		// std::map<std::wstring, glm::vec3> data = bodyInfoList[idx];
-		motionController->applyKinectBodyInfo(m_boneDatas);
-		// idx = (idx + 1) % bodyInfoList.size();
+		if (m_dllCall)
+		{
+			motionController->applyKinectBodyInfo(m_boneDatas);
+		}
+		else
+		{
+			static int idx = 0;
+			std::map<std::wstring, glm::vec3> data = bodyInfoList[idx];
+			motionController->applyKinectBodyInfo(data);
+			idx = (idx + 1) % bodyInfoList.size();
+		}
 	}
 
 	glUseProgram(bulletPhysics->debugDrawer->shaderProgram);
