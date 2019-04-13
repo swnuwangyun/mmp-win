@@ -415,6 +415,7 @@ void Viewer::setBoneAnimationFlag(bool flag)
 void Viewer::updateBoneData(const BoneData* item, const int len)
 {
 	QcAutoCriticalLock lock(m_boneDataLock);
+	m_boneDatas.clear();
 	for (int i = 0; i < len; i++)
 	{
 		BoneData data = *(item + i);

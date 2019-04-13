@@ -321,7 +321,7 @@ void VMDMotionController::actualRotate(std::map<std::wstring, glm::vec3> &data)
 					if (bone_index == -1 || kbone_index == -1)
 					{
 						liboutputdebug::println(libtext::format(L"Failed to get mmd bone struct by kinect mappings for: %s", kname.c_str()));
-						continue;
+						break;
 					}
 					PMXBone *bone = pmxInfo.bones[bone_index];
 					PMXBone *bone_child = pmxInfo.bones[kbone_index];
@@ -332,12 +332,12 @@ void VMDMotionController::actualRotate(std::map<std::wstring, glm::vec3> &data)
 					if (data.find(kname) == data.end())
 					{
 						liboutputdebug::println(libtext::format(L"Failed kinect data missing for: %s", kname.c_str()));
-						continue;
+						break;
 					}
 					if (data.find(kname_child) == data.end())
 					{
 						liboutputdebug::println(libtext::format(L"Failed kinect data missing for: %s", kname_child.c_str()));
-						continue;
+						break;
 					}
 					glm::vec3 pos = data[kname];
 					glm::vec3 pos_child = data[kname_child];
