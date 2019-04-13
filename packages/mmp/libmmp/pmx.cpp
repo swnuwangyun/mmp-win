@@ -72,7 +72,27 @@ namespace ClosedMMDFormat
 			index = (int)tmpIndex;
 		}
 	}
-	
+
+	void getPMXIndex(ifstream &miku, unsigned int &index, uint8_t &indexSize)
+	{
+		//TODO: Apply this method of setting the index to the rest of the file-reading code (make a function)
+		if (indexSize == 1) {
+			int8_t tmpIndex;
+			miku.read((char*)&tmpIndex, (int)indexSize);
+			index = (unsigned int)tmpIndex;
+		}
+		else if (indexSize == 2) {
+			uint16_t tmpIndex;
+			miku.read((char*)&tmpIndex, (int)indexSize);
+			index = (unsigned int)tmpIndex;
+		}
+		else if (indexSize == 4) {
+			unsigned int tmpIndex;
+			miku.read((char*)&tmpIndex, (int)indexSize);
+			index = (unsigned int)tmpIndex;
+		}
+	}
+
 	void getPMXText(ifstream &miku, PMXInfo &pmxInfo, string &result, bool debug)
 	{
 		uint32_t text_size;

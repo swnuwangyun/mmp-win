@@ -18,6 +18,9 @@
 #include <glm/gtx/norm.hpp>
 #include <glm/gtx/euler_angles.hpp>
 
+#include "../pmxvLogger.h"
+#include "../libtext.h"
+
 //#define MODELDUMP true
 #define IK_DUMP false
 
@@ -28,13 +31,13 @@
 using namespace std;
 using namespace ClosedMMDFormat;
 
-VMDMotionController::VMDMotionController(PMXInfo &pmxInfo,VMDInfo &vmdInfo,GLuint shaderProgram):pmxInfo(pmxInfo),vmdInfo(vmdInfo)
-{	
+VMDMotionController::VMDMotionController(PMXInfo &pmxInfo, VMDInfo &vmdInfo, GLuint shaderProgram) :pmxInfo(pmxInfo), vmdInfo(vmdInfo)
+{
 	//***INIT BONE TRANSFORMATION VARIABLES***
-	time=0;
+	time = 0;
 
 	// 完善Kinect和mmd的骨骼映射关系
-	for (unsigned i = 0; i<pmxInfo.bone_continuing_datasets; i++)
+	for (unsigned i = 0; i < pmxInfo.bone_continuing_datasets; i++)
 	{
 		PMXBone *b = pmxInfo.bones[i];
 		wstring name = b->wname;
@@ -49,24 +52,24 @@ VMDMotionController::VMDMotionController(PMXInfo &pmxInfo,VMDInfo &vmdInfo,GLuin
 			}
 		}
 	}
-	
-	invBindPose=new glm::mat4[pmxInfo.bone_continuing_datasets];
-	for(int i=0; i<pmxInfo.bone_continuing_datasets; ++i)
+
+	invBindPose = new glm::mat4[pmxInfo.bone_continuing_datasets];
+	for (int i = 0; i < pmxInfo.bone_continuing_datasets; ++i)
 	{
 		PMXBone *b = pmxInfo.bones[i];
-		invBindPose[i] = glm::translate( -b->position );
+		invBindPose[i] = glm::translate(-b->position);
 	}
-	skinMatrix=new glm::mat4[pmxInfo.bone_continuing_datasets]();
-	
-	Bones_loc=glGetUniformLocation(shaderProgram,"Bones");
-	
+	skinMatrix = new glm::mat4[pmxInfo.bone_continuing_datasets]();
+
+	Bones_loc = glGetUniformLocation(shaderProgram, "Bones");
+
 	if (&vmdInfo != NULL)
 	{
 		boneKeyFrames.resize(pmxInfo.bone_continuing_datasets);
-		for (unsigned i = 0; i<vmdInfo.boneFrames.size(); ++i)
+		for (unsigned i = 0; i < vmdInfo.boneFrames.size(); ++i)
 		{
 			//cout<<"Searching for match in model for "<<vmdInfo.boneFrames[i].name<<"...";
-			for (unsigned j = 0; j<pmxInfo.bone_continuing_datasets; ++j)
+			for (unsigned j = 0; j < pmxInfo.bone_continuing_datasets; ++j)
 			{
 				//Search for the bone number from the bone name
 				if (vmdInfo.boneFrames[i].name == pmxInfo.bones[j]->name)
@@ -83,7 +86,7 @@ VMDMotionController::VMDMotionController(PMXInfo &pmxInfo,VMDInfo &vmdInfo,GLuin
 			//cout<<endl;
 		}
 
-		for (unsigned int i = 0; i<pmxInfo.bone_continuing_datasets; ++i)
+		for (unsigned int i = 0; i < pmxInfo.bone_continuing_datasets; ++i)
 		{
 			boneKeyFrames[i].sort();
 			ite_boneKeyFrames.push_back(boneKeyFrames[i].begin());
@@ -92,9 +95,9 @@ VMDMotionController::VMDMotionController(PMXInfo &pmxInfo,VMDInfo &vmdInfo,GLuin
 		}
 
 		morphKeyFrames.resize(pmxInfo.morph_continuing_datasets);
-		for (unsigned i = 0; i<vmdInfo.morphFrames.size(); ++i)
+		for (unsigned i = 0; i < vmdInfo.morphFrames.size(); ++i)
 		{
-			for (unsigned j = 0; j<pmxInfo.morph_continuing_datasets; ++j)
+			for (unsigned j = 0; j < pmxInfo.morph_continuing_datasets; ++j)
 			{
 				//Search for the bone number from the bone name
 				if (vmdInfo.morphFrames[i].name == pmxInfo.morphs[j]->name)
@@ -105,13 +108,18 @@ VMDMotionController::VMDMotionController(PMXInfo &pmxInfo,VMDInfo &vmdInfo,GLuin
 			}
 		}
 
-		for (unsigned i = 0; i<pmxInfo.morph_continuing_datasets; ++i)
+		for (unsigned i = 0; i < pmxInfo.morph_continuing_datasets; ++i)
 		{
 			morphKeyFrames[i].sort();
 			ite_morphKeyFrames.push_back(morphKeyFrames[i].begin());
 
 			vMorphWeights.push_back(0);
 		}
+	}
+
+	for (unsigned i = 0; i < pmxInfo.morph_continuing_datasets; ++i)
+	{
+		vMorphWeights.push_back(0);
 	}
 	
 	#ifdef MODELDUMP
@@ -182,7 +190,6 @@ void VMDMotionController::updateVertexMorphs()
 	for(unsigned i=0; i<pmxInfo.morph_continuing_datasets; ++i)
 	{
 		PMXMorph *morph=pmxInfo.morphs[i];
-		
 		if(morph->type==MORPH_TYPE_VERTEX)
 		{
 			unsigned long t0,t1;
@@ -371,6 +378,72 @@ void VMDMotionController::actualRotate(std::map<std::wstring, glm::vec3> &data)
 			}
 		}
 	}
+}
+void VMDMotionController::applyMorphData(std::map<std::wstring, float> morphData)
+{
+	for (unsigned i = 0; i<pmxInfo.vertex_continuing_datasets; i++)
+	{
+		vertexData[i].position.x = pmxInfo.vertices[i]->pos.x;
+		vertexData[i].position.y = pmxInfo.vertices[i]->pos.y;
+		vertexData[i].position.z = pmxInfo.vertices[i]->pos.z;
+		vertexData[i].position.w = 1.0f;
+	}
+
+	for (unsigned i = 0; i<pmxInfo.morph_continuing_datasets; ++i)
+	{
+		PMXMorph *morph = pmxInfo.morphs[i];
+		if (morph->type == MORPH_TYPE_VERTEX)
+		{
+			//cout<<ipolValue<<endl;
+			//模拟数据触发眨眼的表情，就是调节权重从0到1不断的变化
+			std::map<std::wstring, float>::iterator it = morphData.find(morph->wname);
+			if (it != morphData.end())
+			{
+				vMorphWeights[i] = it->second;
+			}
+			//if (morph->wname == L"ウィンク") // 左眼
+			//{
+			//	static float factor = 0.0f;
+			//	factor += 0.05f;
+			//	if (factor > 1.0f)
+			//		factor = 0.0f;
+			//	vMorphWeights[i] = factor;
+			//}
+			//if (morph->wname == L"ウィンク右") // 右眼
+			//{
+			//	static float factor = 0.0f;
+			//	factor += 0.05f;
+			//	if (factor > 1.0f)
+			//		factor = 0.0f;
+			//	vMorphWeights[i] = factor;
+			//}
+			//if (morph->wname == L"○") // 张口
+			//{
+			//	static float factor = 0.0f;
+			//	factor += 0.05f;
+			//	if (factor > 1.0f)
+			//		factor = 0.0f;
+			//	vMorphWeights[i] = factor;
+			//}
+
+			for (int j = 0; j<morph->morphOffsetNum; ++j)
+			{
+				PMXVertexMorph *vMorph = (PMXVertexMorph*)morph->offsetData[j];
+				glm::vec3 &morphTarget = vMorph->coordinateOffset;
+
+				if (vMorph->vertexIndex <= 0)
+					continue;
+
+				glm::vec3 diffVector = morphTarget;
+
+				vertexData[vMorph->vertexIndex].position.x += diffVector.x * vMorphWeights[i];
+				vertexData[vMorph->vertexIndex].position.y += diffVector.y * vMorphWeights[i];
+				vertexData[vMorph->vertexIndex].position.z += diffVector.z * vMorphWeights[i];
+				vertexData[vMorph->vertexIndex].position.w = 1.0f;
+			}
+		}
+	}
+	glBufferData(GL_ARRAY_BUFFER, pmxInfo.vertex_continuing_datasets * sizeof(VertexData), vertexData, GL_DYNAMIC_DRAW);
 }
 
 void VMDMotionController::applyKinectBodyInfo(std::map<std::wstring, glm::vec3> &data)

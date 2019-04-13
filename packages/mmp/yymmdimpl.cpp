@@ -77,6 +77,12 @@ void YYMMDImpl::updateBoneData(const BoneData* item, const int len)
 		m_viewer->updateBoneData(item, len);
 }
 
+void YYMMDImpl::updateMorphData(const wchar_t* key, const float value)
+{
+	if (m_viewer)
+		m_viewer->updateMorphData(key, value);
+}
+
 void YYMMDImpl::copyOfTextureData(unsigned char* dst)
 {
 	if (m_viewer)
