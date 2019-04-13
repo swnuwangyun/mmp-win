@@ -2,6 +2,8 @@
 
 #include "interpolation.h"
 #include "glm_helper.h"
+#include "../liboutputdebug.h"
+#include "../libtext.h"
 
 #include <sstream>
 #include <iostream>
@@ -312,13 +314,33 @@ void VMDMotionController::actualRotate(std::map<std::wstring, glm::vec3> &data)
 				// 一段骨骼由2个关节点组成，因此需要判断item.child是否为空，空表示肢体的末端关节点，就无须下述处理了
 				if (item.child != L"")
 				{
-					// 拿到mmd中关节点和子关节点结构体
-					PMXBone *bone = pmxInfo.bones[item.index];
-					PMXBone *bone_child = pmxInfo.bones[kinectBoneList[item.child].index];
+					// 拿到mmd中关节点和子关节点结构体，不同的mmd模型，如果映射关系没做好，有可能找不到对应的点，需要
+					// 处理这个异常情况，否则程序会崩溃
+					int bone_index = item.index;
+					int kbone_index = kinectBoneList[item.child].index;
+					if (bone_index == -1 || kbone_index == -1)
+					{
+						liboutputdebug::println(libtext::format(L"Failed to get mmd bone struct by kinect mappings for: %s", kname.c_str()));
+						continue;
+					}
+					PMXBone *bone = pmxInfo.bones[bone_index];
+					PMXBone *bone_child = pmxInfo.bones[kbone_index];
 
-					// Kinect关节点和子关节点在【世界空间】中的坐标
+					// Kinect关节点和子关节点在【世界空间】中的坐标，Kinect传入的关节点数据可能残缺不全，并不是完整
+					// 的25个点，要能处理这个情况，否则程序可能会崩溃。残缺点对应的mmd骨骼点的姿势将保持初始姿态
+					std::wstring kname_child = kinectBoneList[kname].child;
+					if (data.find(kname) == data.end())
+					{
+						liboutputdebug::println(libtext::format(L"Failed kinect data missing for: %s", kname.c_str()));
+						continue;
+					}
+					if (data.find(kname_child) == data.end())
+					{
+						liboutputdebug::println(libtext::format(L"Failed kinect data missing for: %s", kname_child.c_str()));
+						continue;
+					}
 					glm::vec3 pos = data[kname];
-					glm::vec3 pos_child = data[kinectBoneList[kname].child];
+					glm::vec3 pos_child = data[kname_child];
 
 					// 分别转换到【mmd父关节点坐标系】中
 					glm::vec3 vec_child = pos_child;
