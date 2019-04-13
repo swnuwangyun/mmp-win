@@ -216,7 +216,7 @@ void Viewer::render()
 	{
 		if (glfwGetKey('A') == GLFW_RELEASE)
 		{
-			drawModel(true); //draw model edges
+			//drawModel(true); //draw model edges
 			drawModel(false); //draw model
 		}
 
@@ -243,7 +243,7 @@ void Viewer::render()
 	}
 	else
 	{
-		drawModel(true); //draw model edges
+		//drawModel(true); //draw model edges
 		drawModel(false); //draw model
 	}
 	glUseProgram(shaderProgram); //Restore shader program and buffer's to Viewer's after drawing Bullet debug
@@ -393,7 +393,7 @@ void Viewer::copyOfTextureData(unsigned char* dst)
 	unsigned char* dstData = new unsigned char[TEXTURE_WIDTH * TEXTURE_HEIGHT * 4];
 	memset(dstData, 0, TEXTURE_WIDTH * TEXTURE_HEIGHT * 4);
 	glReadBuffer(GL_COLOR_ATTACHMENT0);
-	glReadPixels(0, 0, TEXTURE_WIDTH, TEXTURE_HEIGHT, GL_RGBA, GL_UNSIGNED_BYTE, dstData);
+	glReadPixels(0, 0, TEXTURE_WIDTH, TEXTURE_HEIGHT, GL_BGRA, GL_UNSIGNED_BYTE, dstData);
 	memcpy_s((void*)dst, TEXTURE_WIDTH * TEXTURE_HEIGHT * 4, (void*)dstData, TEXTURE_WIDTH *TEXTURE_HEIGHT * 4);
 	/*int save_result = SOIL_save_image
 	(
