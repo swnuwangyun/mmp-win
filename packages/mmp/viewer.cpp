@@ -448,11 +448,10 @@ void Viewer::run()
 			fpsCount();
 			updateViewMatrix();
 
-// 			if (NULL != m_ground)
-// 			{
-// 				m_ground->Draw(m_viewMatrix, m_projectionMatrix);
-// 			}
+			//画地板.
+			g_textture.draw(m_viewMatrix, m_projectionMatrix);
 
+			bindBuffers();
 			handleLogic();
 			render();
 
