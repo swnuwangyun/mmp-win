@@ -21,7 +21,7 @@ Texture::~Texture()
 {
 }
 
-void Texture::init(void)
+void Texture::init(bool bIsDllCall)
 {
 	float data[] = {
 		-100.0f,-10.0f,100.0f,1.0f,1.0f,1.0f,1.0f,1.0f,0.0f,0.0f,
@@ -41,12 +41,20 @@ void Texture::init(void)
 
 	int fileSize = 0;
 	string strPath = utils::appDirA();
-	string strFile = strPath + "\\shaders\\test.vs";
+	string strFile;
+	if (bIsDllCall)
+	{
+		strFile = strPath + "\\shaders\\floor_flip.vs";
+	}
+	else
+	{
+		strFile = strPath + "\\shaders\\floor.vs";
+	}
 	unsigned char * shaderCode = utils::LoadFileContent(strFile.c_str(), fileSize);
 	GLuint vsShader = utils::CompileShader(GL_VERTEX_SHADER, (char*)shaderCode);
 	delete shaderCode;
 
-	strFile = strPath + "\\shaders\\test.fs";
+	strFile = strPath + "\\shaders\\floor.fs";
 	shaderCode = utils::LoadFileContent(strFile.c_str(), fileSize);
 	GLuint fsShader = utils::CompileShader(GL_FRAGMENT_SHADER, (char*)shaderCode);
 	delete shaderCode;

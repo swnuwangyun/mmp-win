@@ -7,7 +7,7 @@ public:
 	Texture();
 	~Texture();
 
-	void init(void);
+	void init(bool bIsDllCall);
 	void draw(glm::mat4 & viewMatrix, glm::mat4 & projectionMatrix);
 
 private:

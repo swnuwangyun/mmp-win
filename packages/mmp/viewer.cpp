@@ -377,7 +377,7 @@ void Viewer::init()
 	glViewport(0, 0, TEXTURE_WIDTH, TEXTURE_HEIGHT);
 
 	//地面
-	g_textture.init();
+	g_textture.init(m_dllCall);
 
 	GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
 	switch (status)
