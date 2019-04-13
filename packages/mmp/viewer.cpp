@@ -190,11 +190,13 @@ void Viewer::handleLogic()
 		QcAutoCriticalLock lock(m_boneDataLock);
 		if (m_dllCall)
 		{
+			motionController->applyLeftEye();
 			motionController->applyKinectBodyInfo(m_boneDatas);
 		}
 		else
 		{
 			static int idx = 0;
+			motionController->applyLeftEye();
 			std::map<std::wstring, glm::vec3> data = bodyInfoList[idx];
 			motionController->applyKinectBodyInfo(data);
 			idx = (idx + 1) % bodyInfoList.size();
