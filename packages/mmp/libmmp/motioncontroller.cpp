@@ -243,10 +243,14 @@ void VMDMotionController::updateVertexMorphs()
 
 void VMDMotionController::updateBoneMatrix()
 {
-	for(unsigned i = 0; i < pmxInfo.bone_continuing_datasets; i++)
+	// 计算所有关节点的蒙皮矩阵
+	for (unsigned i = 0; i<pmxInfo.bone_continuing_datasets; i++)
 	{
-		skinMatrix[i] = pmxInfo.bones[i]->calculateGlobalMatrix() * invBindPose[i];
+		PMXBone *b = pmxInfo.bones[i];
+		skinMatrix[i] = b->calculateGlobalMatrix()*invBindPose[i];
 	}
+
+	// 更新到OpenGL的shader中
 	glUniformMatrix4fv(Bones_loc, pmxInfo.bone_continuing_datasets, GL_FALSE, (const GLfloat*)skinMatrix);
 }
 
@@ -483,16 +487,6 @@ void VMDMotionController::applyKinectBodyInfo(std::map<std::wstring, glm::vec3> 
 		simulateRotateLeg();
 		break;
 	}
-	
-	// 计算所有关节点的蒙皮矩阵
-	for (unsigned i = 0; i<pmxInfo.bone_continuing_datasets; i++)
-	{
-		PMXBone *b = pmxInfo.bones[i];
-		skinMatrix[i] = b->calculateGlobalMatrix()*invBindPose[i];
-	}
-
-	// 更新到OpenGL的shader中
-	glUniformMatrix4fv(Bones_loc, pmxInfo.bone_continuing_datasets, GL_FALSE, (const GLfloat*)skinMatrix);
 }
 
 void VMDMotionController::updateBoneAnimation()

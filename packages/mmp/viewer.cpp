@@ -190,9 +190,11 @@ void Viewer::handleLogic()
 	{
 		QcAutoCriticalLock lock(m_dataLock);
 		if (m_dllCall)
-		{
+		{	
 			motionController->applyMorphData(m_morphData);
 			motionController->applyKinectBodyInfo(m_boneDatas);
+			mmdPhysics->updateBones(doPhysics);
+			motionController->updateBoneMatrix();
 		}
 		else
 		{
@@ -201,6 +203,8 @@ void Viewer::handleLogic()
 			std::map<std::wstring, glm::vec3> data = bodyInfoList[idx];
 			motionController->applyKinectBodyInfo(data);
 			idx = (idx + 1) % bodyInfoList.size();
+			mmdPhysics->updateBones(doPhysics);
+			motionController->updateBoneMatrix();
 		}
 	}
 
