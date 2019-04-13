@@ -5,6 +5,7 @@
 #include <sstream>
 
 #include <SOIL.h>
+#include <glm/gtx/log_base.hpp>
 
 #include "texthandle.h"
 #include "pmx.h"
@@ -22,6 +23,10 @@
 
 #include "libtext.h"
 #include "libpath.h"
+#include "ground.h"
+#include "Texture.h"
+
+Texture g_textture;
 
 
 #ifndef M_PI
@@ -41,10 +46,36 @@ static string __DATA_PATH()
 }
 #define DATA_PATH	__DATA_PATH()
 
+string hackShaderFile(string filename)
+{
+	//Variables for temporary file name paths
+	char tmpFilePathChar[1024];
+	tmpnam_s(tmpFilePathChar, 1024); //Get path to a temporary file location
+
+	string tmpFilePath = tmpFilePathChar;
+	ofstream tmpShaderFile(tmpFilePath);
+
+	ifstream shaderFile(filename);
+
+	string line;
+	getline(shaderFile, line); //discard first line
+	tmpShaderFile << "#version 130" << endl;
+	while (shaderFile.good())
+	{
+		getline(shaderFile, line);
+		tmpShaderFile << line << endl;
+	}
+
+	//cout<<tmpFilePath<<endl;
+
+	return tmpFilePath;
+}
+
 Viewer::Viewer(string modelPath, string motionPath,string musicPath,bool dllCall)
 	: GLVersionMajor(4)
 	, GLVersionMinor(2)
 	, m_boneAnimationFlag(false)
+	, m_ground(NULL)
 {
 	log(libtext::format("modelPath = %s, motionPath = %s, musicPath = %s, dllCall = %d",
 		modelPath.c_str(), motionPath.c_str(), musicPath.c_str(), dllCall));
@@ -188,16 +219,35 @@ void Viewer::handleLogic()
 	else
 	{
 		QcAutoCriticalLock lock(m_boneDataLock);
-		// static int idx = 0;
-		// std::map<std::wstring, glm::vec3> data = bodyInfoList[idx];
-		motionController->applyKinectBodyInfo(m_boneDatas);
-		// idx = (idx + 1) % bodyInfoList.size();
+		static int idx = 0;
+		std::map<std::wstring, glm::vec3> data = bodyInfoList[idx];
+		motionController->applyKinectBodyInfo(data);
+		//idx = (idx + 1) % bodyInfoList.size();
 	}
 
 	glUseProgram(bulletPhysics->debugDrawer->shaderProgram);
+	//GL_INVALID_OPERATION
 	setCamera(bulletPhysics->debugDrawer->MVPLoc);
+	
 	glUseProgram(shaderProgram);
 	setCamera(MVP_loc);
+}
+
+void Viewer::updateViewMatrix()
+{
+	// VIEW SPACE ==> CLIP SPACE
+		// 透射变换矩阵：视野FOV，长宽比例，Z轴近端距离，Z轴远端距离
+	m_projectionMatrix = glm::perspective(fov, 16.0f / 9.0f, 0.1f, 100.0f);
+
+	// WORLD SPACE ==> VIEW SPACE
+	// 摄像头变换矩阵：位置，观看方向，相机UPSIDE指向（是否歪着头、倒着看等）
+	// 观看方向可以通过欧拉角pitch, yaw计算出来, roll没有起作用
+	m_viewMatrix = glm::lookAt(
+		glm::vec3(cameraPosition.x, cameraPosition.y, -cameraPosition.z), // Camera is at (4,3,3), in World Space
+		cameraTarget, // and looks at the origin
+		glm::vec3(0, 1, 0)  // Head is up (set to 0,-1,0 to look upside-down)
+	);
+	//View= glm::rotate(0.0f,0.0f,0.0f,1.0f)* View;
 }
 
 void Viewer::render()
@@ -236,11 +286,12 @@ void Viewer::render()
 		drawModel(true); //draw model edges
 		drawModel(false); //draw model
 	}
+
 	glUseProgram(shaderProgram); //Restore shader program and buffer's to Viewer's after drawing Bullet debug
 	glBindVertexArray(VAOs[Vertices]);
 	glBindBuffer(GL_ARRAY_BUFFER, Buffers[VertexArrayBuffer]);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, Buffers[VertexIndexBuffer]);
-	
+	glUseProgram(0);
 	//glFinish();
 	//glDrawBuffer(RecordBuffer,Buffers);
 	//glReadPixels(0,0,1920,1080,GL_RGB,
@@ -305,9 +356,18 @@ void Viewer::init()
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glPointSize(5.0);
-	glClearColor(1, 1, 1, 1);
+	glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 
 	glViewport(0, 0, TEXTURE_WIDTH, TEXTURE_HEIGHT);
+
+	//地面
+	if (NULL == m_ground)
+	{
+		m_ground = new Ground();
+		m_ground->Init();
+	}
+
+	g_textture.init();
 
 	GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
 	switch (status)
@@ -353,6 +413,15 @@ void Viewer::run()
 
 			fpsCount();
 			handleEvents();
+			updateViewMatrix();
+
+			if (NULL != m_ground)
+			{
+				m_ground->Draw(m_viewMatrix, m_projectionMatrix);
+			}
+
+//			g_textture.draw(m_viewMatrix, m_projectionMatrix);
+
 			handleLogic();
 			render();
 
@@ -370,6 +439,13 @@ void Viewer::run()
 			startTime = glfwGetTime();
 
 			fpsCount();
+			updateViewMatrix();
+
+// 			if (NULL != m_ground)
+// 			{
+// 				m_ground->Draw(m_viewMatrix, m_projectionMatrix);
+// 			}
+
 			handleLogic();
 			render();
 
@@ -418,32 +494,23 @@ void Viewer::updateBoneData(const BoneData* item, const int len)
 void Viewer::unint()
 {
 	log("Viewer unint.");
+	if (NULL != m_ground)
+	{
+		delete m_ground;
+		m_ground = NULL;
+	}
 	glDeleteFramebuffers(1, &m_imageFBO);
 }
 
 void Viewer::setCamera(GLuint MVPLoc)
 {
-	// VIEW SPACE ==> CLIP SPACE
-	// 透射变换矩阵：视野FOV，长宽比例，Z轴近端距离，Z轴远端距离
-	glm::mat4 Projection = glm::perspective(fov, 16.0f/9.0f, 0.1f, 100.0f);
-
-	// WORLD SPACE ==> VIEW SPACE
-	// 摄像头变换矩阵：位置，观看方向，相机UPSIDE指向（是否歪着头、倒着看等）
-	// 观看方向可以通过欧拉角pitch, yaw计算出来, roll没有起作用
-	glm::mat4 View       = glm::lookAt(
-		glm::vec3(cameraPosition.x,cameraPosition.y,-cameraPosition.z), // Camera is at (4,3,3), in World Space
-		cameraTarget, // and looks at the origin
-		glm::vec3(0,1,0)  // Head is up (set to 0,-1,0 to look upside-down)
-	);
-	//View= glm::rotate(0.0f,0.0f,0.0f,1.0f)* View;
-
 	// MODEL SPACE ==> WORLD SPACE
 	// 模型变换矩阵 : an identity matrix (model will be at the origin)
 	glm::mat4 Model = glm::translate(glm::vec3(modelTranslate.x, modelTranslate.y, modelTranslate.z));
 
 	// MVP一步到位，从MODEL SPACE变换到CLIP SPACE坐标系
 	// Our ModelViewProjection : multiplication of our 3 matrices
-	glm::mat4 MVP = Projection * View * Model;
+	glm::mat4 MVP = m_projectionMatrix * m_viewMatrix * Model;
 	
 	// 向Shader传递MVP矩阵参数
 	glUniformMatrix4fv(MVPLoc, 1, GL_FALSE, &MVP[0][0]);
@@ -853,31 +920,6 @@ void Viewer::loadTextures()
 	//FreeImage_DeInitialise();
 }
 
-string hackShaderFile(string filename)
-{
-	//Variables for temporary file name paths
-	char tmpFilePathChar[1024];
-	tmpnam_s(tmpFilePathChar, 1024); //Get path to a temporary file location
-	
-	string tmpFilePath=tmpFilePathChar;
-	ofstream tmpShaderFile(tmpFilePath);
-	
-	ifstream shaderFile(filename);
-	
-	string line;
-	getline(shaderFile,line); //discard first line
-	tmpShaderFile<<"#version 130"<<endl;
-	while(shaderFile.good())
-	{
-		getline(shaderFile,line);
-		tmpShaderFile<<line<<endl;
-	}
-	
-	//cout<<tmpFilePath<<endl;
-	
-	return tmpFilePath;
-}
-
 void Viewer::hackShaderFiles()
 {
 	//If using OpenGL 3.0, produce temporary shader files that use #version 130 (to prevent issues with OpenGL 3.0/GLSL 1.30 users
@@ -958,7 +1000,7 @@ void Viewer::initGLFW()
 	if (!glfwInit()) exit(EXIT_FAILURE);
 	
 	//glfwOpenWindow variables, feel free to modify if glfwOpenWindow() fails
-	static const int SCREEN_WIDTH=1920,SCREEN_HEIGHT=1080;
+	static const int SCREEN_WIDTH=1280,SCREEN_HEIGHT=720;
 	static const int redBits=0,greenBits=0,blueBits=0,alphaBits=0,depthBits=32,stencilBits=0;
 	
 	

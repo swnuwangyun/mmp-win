@@ -38,6 +38,7 @@ class VMDMotionController;
 class BulletPhysics;
 class MMDPhysics;
 class VertexData;
+class Ground;
 
 
 class Viewer
@@ -61,6 +62,7 @@ private:
 	
 	void handleEvents();
 	void handleLogic();
+	void updateViewMatrix();
 	void render();
 	void fpsCount();
 	
@@ -100,6 +102,10 @@ private:
 	
 	glm::vec3 modelTranslate;
 	GLfloat fov;
+
+	glm::mat4 m_viewMatrix;
+	glm::mat4 m_projectionMatrix;
+	Ground* m_ground;
 
 	std::string m_motionPath;	// 控制传入mmp的运动路径，若为空，则直接用传入的bonedata,若不为空，则采用motionpath
 	bool		m_dllCall;		// 控制是否创建glfw窗口
