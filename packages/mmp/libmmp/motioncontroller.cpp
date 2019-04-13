@@ -16,6 +16,9 @@
 #include <glm/gtx/norm.hpp>
 #include <glm/gtx/euler_angles.hpp>
 
+#include "../pmxvLogger.h"
+#include "../libtext.h"
+
 //#define MODELDUMP true
 #define IK_DUMP false
 
@@ -185,7 +188,6 @@ void VMDMotionController::updateVertexMorphs()
 	for(unsigned i=0; i<pmxInfo.morph_continuing_datasets; ++i)
 	{
 		PMXMorph *morph=pmxInfo.morphs[i];
-		
 		if(morph->type==MORPH_TYPE_VERTEX)
 		{
 			unsigned long t0,t1;
@@ -368,50 +370,50 @@ void VMDMotionController::applyLeftEye()
 	for (unsigned i = 0; i<pmxInfo.morph_continuing_datasets; ++i)
 	{
 		PMXMorph *morph = pmxInfo.morphs[i];
-
 		if (morph->type == MORPH_TYPE_VERTEX)
 		{
 			//cout<<ipolValue<<endl;
-
 			//模拟数据触发眨眼的表情，就是调节权重从0到1不断的变化
-			if (morph->wname == L"まばたき") //眨眼
+			if (morph->wname == L"ウィンク") // 左眼
 			{
 				static float factor = 0.0f;
 				factor += 0.05f;
 				if (factor > 1.0f)
 					factor = 0.0f;
 				vMorphWeights[i] = factor;
-
-				vertexData[i/*vMorph->vertexIndex*/].position.x += /*diffVector.x * */vMorphWeights[i];
-				vertexData[i/*vMorph->vertexIndex*/].position.y +=/* diffVector.y * */vMorphWeights[i];
-				vertexData[i/*vMorph->vertexIndex*/].position.z += /*diffVector.z * */vMorphWeights[i];
-				vertexData[i/*vMorph->vertexIndex*/].position.w = 1.0f;
+			}
+			if (morph->wname == L"ウィンク右") // 右眼
+			{
+				static float factor = 0.0f;
+				factor += 0.05f;
+				if (factor > 1.0f)
+					factor = 0.0f;
+				vMorphWeights[i] = factor;
+			}
+			if (morph->wname == L"○") // 张口
+			{
+				static float factor = 0.0f;
+				factor += 0.05f;
+				if (factor > 1.0f)
+					factor = 0.0f;
+				vMorphWeights[i] = factor;
 			}
 
-			//模拟数据触发愤怒的表情，就是调节权重从0到1不断的变化
-			//if (morph->wname == L"怒り") //愤怒
-			//{
-			//	static float factor = 0.0f;
-			//	factor += 0.05f;
-			//	if (factor > 10.0f)
-			//		factor = 0.0f;
-			//	vMorphWeights[i] = factor;
-			//}
+			for (int j = 0; j<morph->morphOffsetNum; ++j)
+			{
+				PMXVertexMorph *vMorph = (PMXVertexMorph*)morph->offsetData[j];
+				glm::vec3 &morphTarget = vMorph->coordinateOffset;
 
-			//for (int j = 0; j<morph->morphOffsetNum; ++j)
-			//{
-			//	PMXVertexMorph *vMorph = (PMXVertexMorph*)morph->offsetData[j];
-			//	glm::vec3 &morphTarget = vMorph->coordinateOffset;
+				if (vMorph->vertexIndex <= 0)
+					continue;
 
-			//	glm::vec3 diffVector = morphTarget;
+				glm::vec3 diffVector = morphTarget;
 
-				//vertexData[i/*vMorph->vertexIndex*/].position.x += /*diffVector.x * */vMorphWeights[i];
-				//vertexData[i/*vMorph->vertexIndex*/].position.y +=/* diffVector.y * */vMorphWeights[i];
-				//vertexData[i/*vMorph->vertexIndex*/].position.z += /*diffVector.z * */vMorphWeights[i];
-				//vertexData[i/*vMorph->vertexIndex*/].position.w = 1.0f;
-				//vertexData[vMorph->vertexIndex].position.w=vertexPosition.w;
-			//}
-
+				vertexData[vMorph->vertexIndex].position.x += diffVector.x * vMorphWeights[i];
+				vertexData[vMorph->vertexIndex].position.y += diffVector.y * vMorphWeights[i];
+				vertexData[vMorph->vertexIndex].position.z += diffVector.z * vMorphWeights[i];
+				vertexData[vMorph->vertexIndex].position.w = 1.0f;
+			}
 		}
 	}
 	glBufferData(GL_ARRAY_BUFFER, pmxInfo.vertex_continuing_datasets * sizeof(VertexData), vertexData, GL_DYNAMIC_DRAW);
