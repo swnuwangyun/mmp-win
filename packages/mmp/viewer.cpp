@@ -49,6 +49,7 @@ Viewer::Viewer(string modelPath, string motionPath,string musicPath,bool dllCall
 	log(libtext::format("modelPath = %s, motionPath = %s, musicPath = %s, dllCall = %d",
 		modelPath.c_str(), motionPath.c_str(), musicPath.c_str(), dllCall));
 
+	m_morphData.clear();
 	int index=modelPath.rfind("/");
 	string modelFilePath,modelFolderPath;
 	
@@ -187,16 +188,16 @@ void Viewer::handleLogic()
 	}
 	else
 	{
-		QcAutoCriticalLock lock(m_boneDataLock);
+		QcAutoCriticalLock lock(m_dataLock);
 		if (m_dllCall)
 		{
-			motionController->applyLeftEye();
+			motionController->applyMorphData(m_morphData);
 			motionController->applyKinectBodyInfo(m_boneDatas);
 		}
 		else
 		{
 			static int idx = 0;
-			motionController->applyLeftEye();
+			motionController->applyMorphData(m_morphData);
 			std::map<std::wstring, glm::vec3> data = bodyInfoList[idx];
 			motionController->applyKinectBodyInfo(data);
 			idx = (idx + 1) % bodyInfoList.size();
@@ -416,7 +417,7 @@ void Viewer::setBoneAnimationFlag(bool flag)
 
 void Viewer::updateBoneData(const BoneData* item, const int len)
 {
-	QcAutoCriticalLock lock(m_boneDataLock);
+	QcAutoCriticalLock lock(m_dataLock);
 	for (int i = 0; i < len; i++)
 	{
 		BoneData data = *(item + i);
@@ -424,10 +425,17 @@ void Viewer::updateBoneData(const BoneData* item, const int len)
 	}
 }
 
+void Viewer::updateMorphData(const wchar_t* key, const float value)
+{
+	QcAutoCriticalLock lock(m_dataLock);
+	m_morphData[key] = value;
+}
+
 void Viewer::unint()
 {
 	log("Viewer unint.");
 	glDeleteFramebuffers(1, &m_imageFBO);
+	m_morphData.clear();
 }
 
 void Viewer::setCamera(GLuint MVPLoc)

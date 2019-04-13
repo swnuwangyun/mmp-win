@@ -379,7 +379,7 @@ void VMDMotionController::actualRotate(std::map<std::wstring, glm::vec3> &data)
 		}
 	}
 }
-void VMDMotionController::applyLeftEye()
+void VMDMotionController::applyMorphData(std::map<std::wstring, float> morphData)
 {
 	for (unsigned i = 0; i<pmxInfo.vertex_continuing_datasets; i++)
 	{
@@ -396,30 +396,35 @@ void VMDMotionController::applyLeftEye()
 		{
 			//cout<<ipolValue<<endl;
 			//模拟数据触发眨眼的表情，就是调节权重从0到1不断的变化
-			if (morph->wname == L"ウィンク") // 左眼
+			std::map<std::wstring, float>::iterator it = morphData.find(morph->wname);
+			if (it != morphData.end())
 			{
-				static float factor = 0.0f;
-				factor += 0.05f;
-				if (factor > 1.0f)
-					factor = 0.0f;
-				vMorphWeights[i] = factor;
+				vMorphWeights[i] = it->second;
 			}
-			if (morph->wname == L"ウィンク右") // 右眼
-			{
-				static float factor = 0.0f;
-				factor += 0.05f;
-				if (factor > 1.0f)
-					factor = 0.0f;
-				vMorphWeights[i] = factor;
-			}
-			if (morph->wname == L"○") // 张口
-			{
-				static float factor = 0.0f;
-				factor += 0.05f;
-				if (factor > 1.0f)
-					factor = 0.0f;
-				vMorphWeights[i] = factor;
-			}
+			//if (morph->wname == L"ウィンク") // 左眼
+			//{
+			//	static float factor = 0.0f;
+			//	factor += 0.05f;
+			//	if (factor > 1.0f)
+			//		factor = 0.0f;
+			//	vMorphWeights[i] = factor;
+			//}
+			//if (morph->wname == L"ウィンク右") // 右眼
+			//{
+			//	static float factor = 0.0f;
+			//	factor += 0.05f;
+			//	if (factor > 1.0f)
+			//		factor = 0.0f;
+			//	vMorphWeights[i] = factor;
+			//}
+			//if (morph->wname == L"○") // 张口
+			//{
+			//	static float factor = 0.0f;
+			//	factor += 0.05f;
+			//	if (factor > 1.0f)
+			//		factor = 0.0f;
+			//	vMorphWeights[i] = factor;
+			//}
 
 			for (int j = 0; j<morph->morphOffsetNum; ++j)
 			{

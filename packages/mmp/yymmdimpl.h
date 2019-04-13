@@ -15,6 +15,7 @@ public:
 	virtual void setBoneAnimationFlag(bool flag);
 	virtual void render();
 	virtual void updateBoneData(const BoneData* item, const int len);
+	virtual void updateMorphData(const wchar_t* key, const float value);
 	virtual void copyOfTextureData(unsigned char* dst);
 	virtual void setLogPath(const char* logPath);
 	virtual bool unInit();
