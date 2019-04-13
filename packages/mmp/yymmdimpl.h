@@ -15,9 +15,14 @@ public:
 	virtual void setBoneAnimationFlag(bool flag);
 	virtual void render();
 	virtual void updateBoneData(const BoneData* item, const int len);
+	virtual void updateMorphData(const wchar_t* key, const float value);
 	virtual void copyOfTextureData(unsigned char* dst);
 	virtual void setLogPath(const char* logPath);
 	virtual bool unInit();
+
+public:
+	// 用于区分是否本工程调用还是外界DLL调用
+	void setMainThread(DWORD threadId);
 
 private:
 	void resetViewer();
@@ -28,4 +33,6 @@ private:
 	HMODULE			 m_hModOF_glew;
 	static YYMMDImpl *m_instance;
 	Viewer* m_viewer;
+
+	DWORD m_threadId;
 };

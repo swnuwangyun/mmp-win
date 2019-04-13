@@ -3,6 +3,7 @@
 
 #include <Windows.h>
 #include <vector>
+#include <wchar.h>
 
 #define TEXTURE_WIDTH	 1280
 #define TEXTURE_HEIGHT   720
@@ -37,6 +38,9 @@ namespace YYMMD
 
 		// 写入骨骼数据
 		virtual void updateBoneData(const BoneData* item, const int len) = 0;
+
+		// 写入表情数据
+		virtual void updateMorphData(const wchar_t* key, const float value) = 0;
 
 		// 处理完成输出的texture
 		virtual void copyOfTextureData(unsigned char* dst) = 0;

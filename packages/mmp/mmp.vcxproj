@@ -71,13 +71,14 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
+    <TargetName>yymmd</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <TargetName>$(ProjectName)</TargetName>
+    <TargetName>yymmd</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
@@ -92,16 +93,16 @@
       <SDLCheck>true</SDLCheck>
       <AdditionalIncludeDirectories>..\..\include\;..\..\3rd\libiconv-1.9.2-1-lib\include;..\..\3rd\Simple OpenGL Image Library\src;..\..\3rd\SDL2-2.0.9\include;..\..\3rd\SDL2_mixer-2.0.4\include;..\..\3rd\bullet3-2.82\src;..\..\3rd\glfw-2.7.9\include;..\..\3rd\glew\include;..\..\3rd\glm-0.9.5.0\glm;include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
-      <ForcedIncludeFiles>%(ForcedIncludeFiles)</ForcedIncludeFiles>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>..\..\3rd\libiconv-1.9.2-1-lib\lib;..\..\3rd\SDL2-2.0.9\lib\x86;..\..\3rd\SDL2_mixer-2.0.4\lib\x86;..\..\3rd\Simple OpenGL Image Library\projects\VC14\Debug;..\..\3rd\bullet3-2.82\lib\Debug;..\..\3rd\glfw-2.7.9\support\msvc140\Release\Win32;..\..\3rd\glew\lib\Release\Win32;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>Winmm.lib;glew32.lib;glfw.lib;OpenGLSupport_Debug.lib;BulletDynamics_Debug.lib;BulletCollision_Debug.lib;LinearMath_Debug.lib;opengl32.lib;glu32.lib;SDL2_mixer.lib;SDL2.lib;SDL2main.lib;SOIL.lib;libiconv.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\..\3rd\libiconv-1.9.2-1-lib\lib;..\..\3rd\Simple OpenGL Image Library\projects\VC14\Release;..\..\3rd\SDL2-2.0.9\lib\x86;..\..\3rd\SDL2_mixer-2.0.4\lib\x86;..\..\3rd\bullet3-2.82\lib\Debug;..\..\3rd\glfw-2.7.9\support\msvc140\Release\Win32;..\..\3rd\glew\lib\Release\Win32;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>of_glew.lib;glfw.lib;OpenGLSupport_Debug.lib;BulletDynamics_Debug.lib;BulletCollision_Debug.lib;LinearMath_Debug.lib;opengl32.lib;glu32.lib;SDL2_mixer.lib;SDL2.lib;SDL2main.lib;SOIL.lib;libiconv.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy "..\..\3rd\glew-1.11.0\bin\Release\Win32\glew32.dll" $(OutDir) /s /h /d /y
+      <Command>xcopy "..\..\3rd\glew\bin\Release\Win32\of_glew.dll" $(OutDir) /s /h /d /y
 xcopy "..\..\3rd\SDL2_mixer-2.0.4\lib\x86\*.dll" $(OutDir) /s /h /d /y
 xcopy "..\..\3rd\SDL2-2.0.9\lib\x86\*.dll" $(OutDir) /s /h /d /y
 xcopy "..\..\data\*" $(OutDir)\data /y /e /i /q /d
@@ -177,6 +178,7 @@ xcopy "..\..\3rd\libiconv-1.9.2-1-bin\bin\libiconv2.dll" $(OutDir) /s /h /d /y</
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="glfw_func_callbacks.h" />
+    <ClInclude Include="liboutputdebug.h" />
     <ClInclude Include="libpath.h" />
     <ClInclude Include="libtext.h" />
     <ClInclude Include="pmxvLogger.h" />
@@ -205,6 +207,7 @@ xcopy "..\..\3rd\libiconv-1.9.2-1-bin\bin\libiconv2.dll" $(OutDir) /s /h /d /y</
     <ClCompile Include="libmmp\shader.cpp" />
     <ClCompile Include="libmmp\texthandle.cpp" />
     <ClCompile Include="libmmp\vmd.cpp" />
+    <ClCompile Include="liboutputdebug.cpp" />
     <ClCompile Include="libpath.cpp" />
     <ClCompile Include="libtext.cpp" />
     <ClCompile Include="main.cpp" />

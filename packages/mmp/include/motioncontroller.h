@@ -54,6 +54,8 @@ class VMDMotionController
 	void updateBoneAnimation();			//!< \if ENGLISH \brief A function used to update the model's bone transformation matrices with the current frame of animation. \endif
 										//!< \if JAPANESE \brief モデルのボーン変形行列の配列を更新する為の関数。 \endif
 
+	// 眼睛权值和嘴巴权值添加进来
+	void applyMorphData(std::map<std::wstring, float> morphData);
 	// 将Kinect中的骨骼数据应用到模型中
 	void applyKinectBodyInfo(std::map<std::wstring, glm::vec3> &data);
 	void actualRotate(std::map<std::wstring, glm::vec3> &data);

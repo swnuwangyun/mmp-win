@@ -281,7 +281,7 @@ namespace ClosedMMDFormat
 
 	struct PMXVertexMorph: PMXMorphData
 	{
-		int vertexIndex;
+		unsigned int vertexIndex;
 		glm::vec3 coordinateOffset;
 	};
 

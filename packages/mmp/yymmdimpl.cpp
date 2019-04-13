@@ -8,6 +8,7 @@ YYMMDImpl* YYMMDImpl::m_instance = NULL;
 YYMMDImpl::YYMMDImpl()
 : m_viewer(NULL)
 , m_hModOF_glew(NULL)
+, m_threadId(0)
 {
 }
 
@@ -46,7 +47,7 @@ void YYMMDImpl::setModelPath(const char* modePath, const char* motionPath, const
 
 	std::string model_file, motion_file;
 	pmxVmdPathTranster(modePath, motionPath, model_file, motion_file);
-	m_viewer = new Viewer(model_file, motion_file, musicPath, false);
+	m_viewer = new Viewer(model_file, motion_file, musicPath, m_threadId != GetCurrentThreadId());
 	m_viewer->init();
 }
 
@@ -76,6 +77,12 @@ void YYMMDImpl::updateBoneData(const BoneData* item, const int len)
 		m_viewer->updateBoneData(item, len);
 }
 
+void YYMMDImpl::updateMorphData(const wchar_t* key, const float value)
+{
+	if (m_viewer)
+		m_viewer->updateMorphData(key, value);
+}
+
 void YYMMDImpl::copyOfTextureData(unsigned char* dst)
 {
 	if (m_viewer)
@@ -94,6 +101,11 @@ bool YYMMDImpl::unInit()
 
 	delete pmxvLogger::get();
 	return true;
+}
+
+void YYMMDImpl::setMainThread(DWORD threadId)
+{
+	m_threadId = threadId;
 }
 
 void YYMMDImpl::resetViewer()

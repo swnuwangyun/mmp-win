@@ -79,6 +79,7 @@ Viewer::Viewer(string modelPath, string motionPath,string musicPath,bool dllCall
 	log(libtext::format("modelPath = %s, motionPath = %s, musicPath = %s, dllCall = %d",
 		modelPath.c_str(), motionPath.c_str(), musicPath.c_str(), dllCall));
 
+	m_morphData.clear();
 	int index=modelPath.rfind("/");
 	string modelFilePath,modelFolderPath;
 	
@@ -217,11 +218,24 @@ void Viewer::handleLogic()
 	}
 	else
 	{
-		QcAutoCriticalLock lock(m_boneDataLock);
-		static int idx = 0;
-		std::map<std::wstring, glm::vec3> data = bodyInfoList[idx];
-		motionController->applyKinectBodyInfo(data);
-		//idx = (idx + 1) % bodyInfoList.size();
+		QcAutoCriticalLock lock(m_dataLock);
+		if (m_dllCall)
+		{	
+			motionController->applyMorphData(m_morphData);
+			motionController->applyKinectBodyInfo(m_boneDatas);
+			mmdPhysics->updateBones(doPhysics);
+			motionController->updateBoneMatrix();
+		}
+		else
+		{
+			static int idx = 0;
+			motionController->applyMorphData(m_morphData);
+			std::map<std::wstring, glm::vec3> data = bodyInfoList[idx];
+			motionController->applyKinectBodyInfo(data);
+			idx = (idx + 1) % bodyInfoList.size();
+			mmdPhysics->updateBones(doPhysics);
+			motionController->updateBoneMatrix();
+		}
 	}
 
 	glUseProgram(bulletPhysics->debugDrawer->shaderProgram);
@@ -258,7 +272,7 @@ void Viewer::render()
 	{
 		if (glfwGetKey('A') == GLFW_RELEASE)
 		{
-			drawModel(true); //draw model edges
+			//drawModel(true); //draw model edges
 			drawModel(false); //draw model
 		}
 
@@ -285,7 +299,7 @@ void Viewer::render()
 	}
 	else
 	{
-		drawModel(true); //draw model edges
+		//drawModel(true); //draw model edges
 		drawModel(false); //draw model
 	}
 
@@ -452,7 +466,7 @@ void Viewer::copyOfTextureData(unsigned char* dst)
 	unsigned char* dstData = new unsigned char[TEXTURE_WIDTH * TEXTURE_HEIGHT * 4];
 	memset(dstData, 0, TEXTURE_WIDTH * TEXTURE_HEIGHT * 4);
 	glReadBuffer(GL_COLOR_ATTACHMENT0);
-	glReadPixels(0, 0, TEXTURE_WIDTH, TEXTURE_HEIGHT, GL_RGBA, GL_UNSIGNED_BYTE, dstData);
+	glReadPixels(0, 0, TEXTURE_WIDTH, TEXTURE_HEIGHT, GL_BGRA, GL_UNSIGNED_BYTE, dstData);
 	memcpy_s((void*)dst, TEXTURE_WIDTH * TEXTURE_HEIGHT * 4, (void*)dstData, TEXTURE_WIDTH *TEXTURE_HEIGHT * 4);
 	/*int save_result = SOIL_save_image
 	(
@@ -476,12 +490,19 @@ void Viewer::setBoneAnimationFlag(bool flag)
 
 void Viewer::updateBoneData(const BoneData* item, const int len)
 {
-	QcAutoCriticalLock lock(m_boneDataLock);
+	QcAutoCriticalLock lock(m_dataLock);
+	m_boneDatas.clear();
 	for (int i = 0; i < len; i++)
 	{
 		BoneData data = *(item + i);
 		m_boneDatas[data.name] = glm::vec3(data.x, data.y, data.z);
 	}
+}
+
+void Viewer::updateMorphData(const wchar_t* key, const float value)
+{
+	QcAutoCriticalLock lock(m_dataLock);
+	m_morphData[key] = value;
 }
 
 void Viewer::unint()
@@ -493,6 +514,7 @@ void Viewer::unint()
 		m_ground = NULL;
 	}
 	glDeleteFramebuffers(1, &m_imageFBO);
+	m_morphData.clear();
 }
 
 void Viewer::setCamera(GLuint MVPLoc)
@@ -684,7 +706,9 @@ void Viewer::loadTextures()
 	for(int i=0; i<pmxInfo->texture_continuing_datasets; ++i)
 	{
 		cout<<"Loading "<<pmxInfo->texturePaths[i]<<"...";
-		if(pmxInfo->texturePaths[i].substr(pmxInfo->texturePaths[i].size()-3)=="png" || pmxInfo->texturePaths[i].substr(pmxInfo->texturePaths[i].size()-3)=="spa")
+		if (pmxInfo->texturePaths[i].substr(pmxInfo->texturePaths[i].size() - 3) == "png"
+			|| pmxInfo->texturePaths[i].substr(pmxInfo->texturePaths[i].size() - 3) == "spa"
+			|| pmxInfo->texturePaths[i].substr(pmxInfo->texturePaths[i].size() - 3) == "bmp")
 		{
 			GLuint texture;
 			int width, height;
@@ -702,7 +726,7 @@ void Viewer::loadTextures()
 			glActiveTexture( GL_TEXTURE0 );
 			glGenTextures( 1, &texture );
 			glBindTexture( GL_TEXTURE_2D, texture );
-				image = SOIL_load_image( loc.c_str(), &width, &height, 0, SOIL_LOAD_RGBA );
+			image = SOIL_load_image( loc.c_str(), &width, &height, 0, SOIL_LOAD_RGBA );
 			glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image );
 			SOIL_free_image_data( image );
 
@@ -856,8 +880,8 @@ void Viewer::loadTextures()
 			//exit(EXIT_FAILURE);
 			
 			loc.str(std::string()); //clear ss
-			if(i!=10) loc<<DATA_PATH<<"/textures/toon0"<<i<<".bmp";
-			else loc<<DATA_PATH<<"/textures/toon10.bmp";
+			if(i!=10) loc<<DATA_PATH<<"\\textures\\toon0"<<i<<".bmp";
+			else loc<<DATA_PATH<<"\\textures\\toon10.bmp";
 			
 			ifstream test2(loc.str());
 			if(!test2.is_open())
@@ -949,11 +973,25 @@ void Viewer::hackShaderFiles()
 		ifstream test("shaders/model.vert");
 		if(!test.is_open())
 		{
-			shaderProgram=compileShaders(DATA_PATH+"/shaders/model.vert",DATA_PATH+"/shaders/model.frag");
+			if (m_dllCall)
+			{
+				shaderProgram = compileShaders(DATA_PATH + "/shaders/model_flip.vert", DATA_PATH + "/shaders/model.frag");
+			}
+			else
+			{
+				shaderProgram = compileShaders(DATA_PATH + "/shaders/model.vert", DATA_PATH + "/shaders/model.frag");
+			}
 		}
 		else
 		{
-			shaderProgram=compileShaders("shaders/model.vert","shaders/model.frag");
+			if (m_dllCall)
+			{
+				shaderProgram = compileShaders("shaders/model_flip.vert", "shaders/model.frag");
+			}
+			else
+			{
+				shaderProgram = compileShaders("shaders/model.vert", "shaders/model.frag");
+			}
 		}
 		test.close();
 		

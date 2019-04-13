@@ -51,6 +51,7 @@ public:
 	void copyOfTextureData(unsigned char* dst);
 	void setBoneAnimationFlag(bool flag);
 	void updateBoneData(const BoneData* item, const int len);
+	void updateMorphData(const wchar_t* key, const float value);
 	void unint();
 
 private:
@@ -116,8 +117,10 @@ private:
 	GLuint				m_depthTextureID;
 
 	std::map<std::wstring, glm::vec3> m_boneDatas;
-	QcCriticalLock					  m_boneDataLock;
+	QcCriticalLock					  m_dataLock;
 	bool							  m_boneAnimationFlag;
+
+	std::map<std::wstring, float>     m_morphData;
 };
 
 
