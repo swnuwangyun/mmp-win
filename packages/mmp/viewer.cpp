@@ -23,7 +23,6 @@
 
 #include "libtext.h"
 #include "libpath.h"
-#include "ground.h"
 #include "Texture.h"
 
 Texture g_textture;
@@ -231,6 +230,9 @@ void Viewer::handleLogic()
 	
 	glUseProgram(shaderProgram);
 	setCamera(MVP_loc);
+
+	glBindVertexArray(VAOs[Vertices]);
+	glBindBuffer(GL_ARRAY_BUFFER, Buffers[VertexArrayBuffer]);
 }
 
 void Viewer::updateViewMatrix()
@@ -361,12 +363,6 @@ void Viewer::init()
 	glViewport(0, 0, TEXTURE_WIDTH, TEXTURE_HEIGHT);
 
 	//地面
-	if (NULL == m_ground)
-	{
-		m_ground = new Ground();
-		m_ground->Init();
-	}
-
 	g_textture.init();
 
 	GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
@@ -415,13 +411,10 @@ void Viewer::run()
 			handleEvents();
 			updateViewMatrix();
 
-			if (NULL != m_ground)
-			{
-				m_ground->Draw(m_viewMatrix, m_projectionMatrix);
-			}
+			//画地板.
+			g_textture.draw(m_viewMatrix, m_projectionMatrix);
 
-//			g_textture.draw(m_viewMatrix, m_projectionMatrix);
-
+			bindBuffers();
 			handleLogic();
 			render();
 
@@ -627,51 +620,34 @@ void Viewer::drawModel(bool drawEdges)
 //#define MODELDUMP
 void Viewer::initBuffers()
 {
-	#ifdef MODELDUMP
-	ofstream modeldump("modeldump.txt");
-	modeldump << "indices:" << endl;
-	#endif
-	
-	//Note: vertex indices are loaded statically, since they do not change.
-	//The actual vertex data is loaded dynamically each frame, so its memory is managed by the MotionController.
-	GLuint *vertexIndices= (GLuint*) calloc(pmxInfo->face_continuing_datasets,sizeof(GLuint)*3);
-	for(int i=0; i<pmxInfo->faces.size(); ++i) //faces.size()
-	{
-		int j=i*3;
-		vertexIndices[j]=pmxInfo->faces[i]->points[0];
-		vertexIndices[j+1]=pmxInfo->faces[i]->points[1];
-		vertexIndices[j+2]=pmxInfo->faces[i]->points[2];
-		
-		#ifdef MODELDUMP
-		modeldump << vertexIndices[j] << " " << vertexIndices[j+1] << " " << vertexIndices[j+2] << endl;
-		#endif
-	}
-	
-	
-	#ifdef MODELDUMP
-	modeldump << "vertices:" << endl;
-	#endif
-	
-	#ifdef MODELDUMP
-	modeldump.close();
-	#endif
-	
 	//Generate all Viewer Buffers
-	glGenBuffers(NumBuffers,Buffers);
-	
-	//init Element Buffer Object
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, Buffers[VertexIndexBuffer]);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, pmxInfo->face_continuing_datasets*sizeof(GLuint)*3, vertexIndices, GL_STATIC_DRAW);
-	
-	free(vertexIndices);
-	
+	glGenBuffers(NumBuffers, Buffers);
 	
 	//Init Vertex Array Buffer Object
 	glGenVertexArrays(NumVAOs, VAOs);
+}
+
+void Viewer::bindBuffers()
+{
+	glUseProgram(shaderProgram);
+	//Note: vertex indices are loaded statically, since they do not change.
+	//The actual vertex data is loaded dynamically each frame, so its memory is managed by the MotionController.
+	GLuint *vertexIndices = (GLuint*)calloc(pmxInfo->face_continuing_datasets, sizeof(GLuint) * 3);
+	for (int i = 0; i < pmxInfo->faces.size(); ++i) //faces.size()
+	{
+		int j = i * 3;
+		vertexIndices[j] = pmxInfo->faces[i]->points[0];
+		vertexIndices[j + 1] = pmxInfo->faces[i]->points[1];
+		vertexIndices[j + 2] = pmxInfo->faces[i]->points[2];
+	}
+	//init Element Buffer Object
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, Buffers[VertexIndexBuffer]);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, pmxInfo->face_continuing_datasets * sizeof(GLuint) * 3, vertexIndices, GL_STATIC_DRAW);
+	free(vertexIndices);
+
 	glBindVertexArray(VAOs[Vertices]);
-	
 	glBindBuffer(GL_ARRAY_BUFFER, Buffers[VertexArrayBuffer]);
-	
+
 	//Intialize Vertex Attribute Pointers
 	glVertexAttribPointer(vPosition, 4, GL_FLOAT, GL_FALSE, sizeof(VertexData), BUFFER_OFFSET(0)); //4=number of components updated per vertex
 	glBindAttribLocation(shaderProgram, vPosition, "vPosition"); //Explicit vertex attribute index specification for older OpenGL version support. (Newer method is layout qualifier in vertex shader)
@@ -681,19 +657,19 @@ void Viewer::initBuffers()
 	glBindAttribLocation(shaderProgram, vUV, "vUV");
 	glEnableVertexAttribArray(vUV);
 
-	glVertexAttribPointer(vNormal, 3, GL_FLOAT, GL_FALSE, sizeof(VertexData), BUFFER_OFFSET(sizeof(glm::vec4)+sizeof(glm::vec2)));
+	glVertexAttribPointer(vNormal, 3, GL_FLOAT, GL_FALSE, sizeof(VertexData), BUFFER_OFFSET(sizeof(glm::vec4) + sizeof(glm::vec2)));
 	glBindAttribLocation(shaderProgram, vNormal, "vNormal");
 	glEnableVertexAttribArray(vNormal);
 
-	glVertexAttribPointer(vBoneIndices, 4, GL_FLOAT, GL_FALSE, sizeof(VertexData), BUFFER_OFFSET(sizeof(glm::vec4)+sizeof(glm::vec2)+sizeof(glm::vec3)+sizeof(GLfloat)));
+	glVertexAttribPointer(vBoneIndices, 4, GL_FLOAT, GL_FALSE, sizeof(VertexData), BUFFER_OFFSET(sizeof(glm::vec4) + sizeof(glm::vec2) + sizeof(glm::vec3) + sizeof(GLfloat)));
 	glBindAttribLocation(shaderProgram, vBoneIndices, "vBoneIndices");
 	glEnableVertexAttribArray(vBoneIndices);
 
-	glVertexAttribPointer(vBoneWeights, 4, GL_FLOAT, GL_FALSE, sizeof(VertexData), BUFFER_OFFSET(sizeof(glm::vec4)+sizeof(glm::vec2)+sizeof(glm::vec3)+sizeof(GLfloat)*5));
+	glVertexAttribPointer(vBoneWeights, 4, GL_FLOAT, GL_FALSE, sizeof(VertexData), BUFFER_OFFSET(sizeof(glm::vec4) + sizeof(glm::vec2) + sizeof(glm::vec3) + sizeof(GLfloat) * 5));
 	glBindAttribLocation(shaderProgram, vBoneWeights, "vBoneWeights");
 	glEnableVertexAttribArray(vBoneWeights);
 
-	glVertexAttribPointer(vWeightFormula, 1, GL_FLOAT, GL_FALSE, sizeof(VertexData), BUFFER_OFFSET(sizeof(glm::vec4)+sizeof(glm::vec2)+sizeof(glm::vec3)));
+	glVertexAttribPointer(vWeightFormula, 1, GL_FLOAT, GL_FALSE, sizeof(VertexData), BUFFER_OFFSET(sizeof(glm::vec4) + sizeof(glm::vec2) + sizeof(glm::vec3)));
 	glBindAttribLocation(shaderProgram, vWeightFormula, "vWeightFormula");
 	glEnableVertexAttribArray(vWeightFormula);
 }

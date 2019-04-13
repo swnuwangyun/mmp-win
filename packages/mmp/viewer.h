@@ -59,6 +59,7 @@ private:
 	void initUniformVarLocations();
 	void loadTextures();
 	void initBuffers();
+	void bindBuffers();
 	
 	void handleEvents();
 	void handleLogic();

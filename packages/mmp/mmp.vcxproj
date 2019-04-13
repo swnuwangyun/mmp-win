@@ -177,12 +177,10 @@ xcopy "..\..\3rd\libiconv-1.9.2-1-bin\bin\libiconv2.dll" $(OutDir) /s /h /d /y</
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="glfw_func_callbacks.h" />
-    <ClInclude Include="ground.h" />
     <ClInclude Include="libpath.h" />
     <ClInclude Include="libtext.h" />
     <ClInclude Include="pmxvLogger.h" />
     <ClInclude Include="QcCriticalLock.h" />
-    <ClInclude Include="cshader.h" />
     <ClInclude Include="sound.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
@@ -196,7 +194,6 @@ xcopy "..\..\3rd\libiconv-1.9.2-1-bin\bin\libiconv2.dll" $(OutDir) /s /h /d /y</
   <ItemGroup>
     <ClCompile Include="dllmain.cpp" />
     <ClCompile Include="glfw_func_callbacks.cpp" />
-    <ClCompile Include="ground.cpp" />
     <ClCompile Include="libmmp\bulletdebugdrawer.cpp" />
     <ClCompile Include="libmmp\bulletphysics.cpp" />
     <ClCompile Include="libmmp\glm_helper.cpp" />
@@ -212,7 +209,6 @@ xcopy "..\..\3rd\libiconv-1.9.2-1-bin\bin\libiconv2.dll" $(OutDir) /s /h /d /y</
     <ClCompile Include="libtext.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="pmxvLogger.cpp" />
-    <ClCompile Include="cshader.cpp" />
     <ClCompile Include="sound.cpp" />
     <ClCompile Include="stdafx.cpp" />
     <ClCompile Include="Texture.cpp" />

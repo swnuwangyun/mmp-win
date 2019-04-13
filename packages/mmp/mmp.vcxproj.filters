@@ -49,10 +49,8 @@
     <ClCompile Include="dllmain.cpp" />
     <ClCompile Include="yymmd.cpp" />
     <ClCompile Include="yymmdimpl.cpp" />
-    <ClCompile Include="ground.cpp" />
     <ClCompile Include="utils.cpp" />
     <ClCompile Include="vertexbuffer.cpp" />
-    <ClCompile Include="cshader.cpp" />
     <ClCompile Include="Texture.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -73,10 +71,8 @@
     <ClInclude Include="QcCriticalLock.h">
       <Filter>utils</Filter>
     </ClInclude>
-    <ClInclude Include="ground.h" />
     <ClInclude Include="utils.h" />
     <ClInclude Include="vertexbuffer.h" />
-    <ClInclude Include="cshader.h" />
     <ClInclude Include="Texture.h" />
   </ItemGroup>
   <ItemGroup>

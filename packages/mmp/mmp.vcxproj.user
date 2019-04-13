@@ -8,4 +8,7 @@
     <LocalDebuggerCommandArguments>"$(TargetDir)\data\model_pmx\TDA Electric Love Miku\TDA Electric Love Miku.pmx" "$(TargetDir)\data\motion\arm.vmd"</LocalDebuggerCommandArguments>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
   </PropertyGroup>
+  <PropertyGroup>
+    <ShowAllFiles>false</ShowAllFiles>
+  </PropertyGroup>
 </Project>

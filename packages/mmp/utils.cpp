@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "utils.h"
+#include <SOIL.h>
 
 namespace utils
 {
@@ -128,6 +129,7 @@ namespace utils
 	}
 
 	GLuint CreateTexture2DFromBMP(const char*bmpPath) {
+		/*
 		int nFileSize = 0;
 		unsigned char *bmpFileContent = LoadFileContent(bmpPath, nFileSize);
 		if (bmpFileContent == nullptr) {
@@ -141,6 +143,12 @@ namespace utils
 		}
 		GLuint texture = CreateTexture2D(pixelData, bmpWidth, bmpHeight, GL_RGB);
 		delete bmpFileContent;
+		return texture;
+		*/
+		int bmpWidth = 0, bmpHeight = 0;
+		unsigned char* image = SOIL_load_image(bmpPath, &bmpWidth, &bmpHeight, 0, SOIL_LOAD_RGB);
+		GLuint texture = CreateTexture2D(image, bmpWidth, bmpHeight, GL_RGB);
+		SOIL_free_image_data(image);
 		return texture;
 	}
 

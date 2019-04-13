@@ -24,18 +24,19 @@ Texture::~Texture()
 void Texture::init(void)
 {
 	float data[] = {
-		-0.5f,-0.5f,-2.0f,1.0f,1.0f,1.0f,1.0f,1.0f,0.0f,0.0f,
-		0.5f,-0.5f,-2.0f,1.0f,0.0f,1.0f,0.0f,1.0f,1.0f,0.0f,
-		0.0f,0.5f,-2.0f,1.0f,1.0f,0.0f,0.0f,1.0f,0.5f,1.0f
+		-100.0f,-10.0f,100.0f,1.0f,1.0f,1.0f,1.0f,1.0f,0.0f,0.0f,
+		100.0f,-10.0f,100.0f,1.0f,1.0f,1.0f,1.0f,1.0f,1.0f,0.0f,
+		100.0f,-10.0f,-100.0f,1.0f,1.0f,1.0f,1.0f,1.0f,1.0f,1.0f,
+		-100.0f,-10.0f,-100.0f,1.0f,1.0f,1.0f,1.0f,1.0f,0.0f,1.0f
 	};
 	glGenBuffers(1, &m_vbo);
 	glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 30, data, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 40, data, GL_STATIC_DRAW);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	unsigned short indexes[] = { 0,1,2 };
+	unsigned short indexes[] = { 0,1,2,0, 2, 3 };
 	glGenBuffers(1, &m_ebo);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ebo);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned short) * 3, indexes, GL_STATIC_DRAW);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned short) * 6, indexes, GL_STATIC_DRAW);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
 	int fileSize = 0;
@@ -62,7 +63,7 @@ void Texture::init(void)
 	m_projectionMatrixLocation = glGetUniformLocation(m_program, "ProjectionMatrix");
 	m_textureLocation = glGetUniformLocation(m_program, "U_Texture");
 
-	strFile = strPath + "\\shaders\\test.bmp";
+	strFile = strPath + "\\shaders\\ground.bmp";
 	m_texture = utils::CreateTexture2DFromBMP(strFile.c_str());
 }
 
@@ -84,7 +85,7 @@ void Texture::draw(glm::mat4 & viewMatrix, glm::mat4 & projectionMatrix)
 	glEnableVertexAttribArray(m_texcoordLocation);
 	glVertexAttribPointer(m_texcoordLocation, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 10, (void*)(sizeof(float) * 8));
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ebo);
-	glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_SHORT, 0);
+	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, 0);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
