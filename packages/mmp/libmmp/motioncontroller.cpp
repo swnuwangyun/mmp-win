@@ -382,6 +382,20 @@ void VMDMotionController::actualRotate(std::map<std::wstring, glm::vec3> &data)
 			}
 		}
 	}
+
+	std::map<std::wstring, std::wstring> dict = libtext::readKeyValuesFromFile(L"c:\\mmp.txt");
+	if (dict[L"enable"]==L"1")
+	{
+		float bone0x = libtext::wstringToDouble(dict[L"bone0x"]);
+		float bone0y = libtext::wstringToDouble(dict[L"bone0y"]);
+		float bone0z = libtext::wstringToDouble(dict[L"bone0z"]);
+		glm::vec3 pos = data[L"SpineBase"];
+		pos.x *= bone0x;
+		pos.y *= bone0y;
+		pos.z *= bone0z;
+		PMXBone *bone = pmxInfo.bones[0];
+		bone->Local = glm::translate(bone->Local, pos); 
+	}
 }
 void VMDMotionController::applyMorphData(std::map<std::wstring, float> morphData)
 {
