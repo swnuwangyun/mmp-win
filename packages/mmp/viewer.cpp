@@ -445,6 +445,31 @@ void Viewer::unint()
 
 void Viewer::setCamera(GLuint MVPLoc)
 {
+	float lookx = cameraPosition.x;
+	float looky = cameraPosition.y;
+	float lookz = -cameraPosition.z;
+	float targetx = cameraTarget.x;
+	float targety = cameraTarget.y;
+	float targetz = cameraTarget.z;
+	float modelx = modelTranslate.x;
+	float modely = modelTranslate.y;
+	float modelz = modelTranslate.z;
+	// 通过文件设置参数来调试
+	std::map<std::wstring, std::wstring> dict = libtext::readKeyValuesFromFile(L"c:\\mmp.txt");
+	if (dict[L"enable"] == L"1")
+	{
+		fov = libtext::wstringToDouble(dict[L"fov"]);
+		lookx = libtext::wstringToDouble(dict[L"lookx"]);
+		looky = libtext::wstringToDouble(dict[L"looky"]);
+		lookz = libtext::wstringToDouble(dict[L"lookz"]);
+		targetx = libtext::wstringToDouble(dict[L"targetx"]);
+		targety = libtext::wstringToDouble(dict[L"targety"]);
+		targetz = libtext::wstringToDouble(dict[L"targetz"]);
+		modelx = libtext::wstringToDouble(dict[L"modelx"]);
+		modely = libtext::wstringToDouble(dict[L"modely"]);
+		modelz = libtext::wstringToDouble(dict[L"modelz"]);
+	}
+
 	// VIEW SPACE ==> CLIP SPACE
 	// 透射变换矩阵：视野FOV，长宽比例，Z轴近端距离，Z轴远端距离
 	glm::mat4 Projection = glm::perspective(fov, 16.0f/9.0f, 0.1f, 100.0f);
@@ -453,15 +478,15 @@ void Viewer::setCamera(GLuint MVPLoc)
 	// 摄像头变换矩阵：位置，观看方向，相机UPSIDE指向（是否歪着头、倒着看等）
 	// 观看方向可以通过欧拉角pitch, yaw计算出来, roll没有起作用
 	glm::mat4 View       = glm::lookAt(
-		glm::vec3(cameraPosition.x,cameraPosition.y,-cameraPosition.z), // Camera is at (4,3,3), in World Space
-		cameraTarget, // and looks at the origin
+		glm::vec3(lookx, looky, lookz), // Camera is in World Space
+		glm::vec3(targetx, targety, targetz), // and looks at the origin
 		glm::vec3(0,1,0)  // Head is up (set to 0,-1,0 to look upside-down)
 	);
 	//View= glm::rotate(0.0f,0.0f,0.0f,1.0f)* View;
 
 	// MODEL SPACE ==> WORLD SPACE
 	// 模型变换矩阵 : an identity matrix (model will be at the origin)
-	glm::mat4 Model = glm::translate(glm::vec3(modelTranslate.x, modelTranslate.y, modelTranslate.z));
+	glm::mat4 Model = glm::translate(glm::vec3(modelx, modely, modelz));
 
 	// MVP一步到位，从MODEL SPACE变换到CLIP SPACE坐标系
 	// Our ModelViewProjection : multiplication of our 3 matrices
