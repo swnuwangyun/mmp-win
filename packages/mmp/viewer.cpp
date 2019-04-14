@@ -245,8 +245,8 @@ void Viewer::handleLogic()
 	glUseProgram(shaderProgram);
 	setCamera(MVP_loc);
 
-	glBindVertexArray(VAOs[Vertices]);
-	glBindBuffer(GL_ARRAY_BUFFER, Buffers[VertexArrayBuffer]);
+	//glBindVertexArray(VAOs[Vertices]);
+	//glBindBuffer(GL_ARRAY_BUFFER, Buffers[VertexArrayBuffer]);
 }
 
 void Viewer::updateViewMatrix()
@@ -646,6 +646,7 @@ void Viewer::initBuffers()
 	
 	//Init Vertex Array Buffer Object
 	glGenVertexArrays(NumVAOs, VAOs);
+	bindBuffers();
 }
 
 void Viewer::bindBuffers()

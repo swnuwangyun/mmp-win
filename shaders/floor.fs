@@ -9,5 +9,5 @@ in vec2 V_Texcoord;
 out vec4 color;
 void main()
 {
-	color=V_Color*texture2D(U_Texture,V_Texcoord);
+	color=V_Color*texture(U_Texture,V_Texcoord);
 }
